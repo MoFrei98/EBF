@@ -138,6 +138,7 @@ private fun EbfNavigation(
             settings = settings,
             onThemeChange = { scope.launch { settingsRepository.setTheme(it) } },
             onDarkPagesChange = { scope.launch { settingsRepository.setDarkPages(it) } },
+            onPageSizeChange = { scope.launch { settingsRepository.setPageSize(it) } },
             onPageTurnChange = { scope.launch { settingsRepository.setPageTurn(it) } },
             onDismiss = { showSettings = false },
         )

@@ -14,7 +14,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.ebf.R
-import com.example.ebf.data.ZoomMode
 import com.example.ebf.ebfApp
 import com.example.ebf.pdf.Crop
 import com.example.ebf.pdf.CropMath
@@ -43,9 +42,6 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
 
     private val _state = MutableStateFlow<ReaderState>(ReaderState.Loading)
     val state: StateFlow<ReaderState> = _state.asStateFlow()
-
-    private val _zoom = MutableStateFlow(ZoomMode.FIT_PAGE)
-    val zoom: StateFlow<ZoomMode> = _zoom.asStateFlow()
 
     private var document: PdfDocument? = null
 
@@ -80,7 +76,6 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
             return fail(R.string.error_empty_pdf)
         }
         document = doc
-        _zoom.value = book.zoom
         val now = System.currentTimeMillis()
         ebf.appScope.launch {
             repo.update(bookUri) { it.copy(lastOpenedAt = now, pageCount = doc.pageCount) }
@@ -101,11 +96,6 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
 
     /** Seitengröße in PDF-Punkten. */
     suspend fun pageSize(page: Int): Size = requireDocument().pageSize(page)
-
-    fun setZoom(mode: ZoomMode) {
-        _zoom.value = mode
-        ebf.appScope.launch { repo.update(bookUri) { it.copy(zoom = mode) } }
-    }
 
     /** Ausschnitt einer Seite für das Format "Ränder entfernen". */
     suspend fun pageCrop(page: Int): Crop {

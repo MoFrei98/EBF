@@ -1,6 +1,8 @@
 package com.example.ebf.ui.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,12 +27,14 @@ import com.example.ebf.R
 import com.example.ebf.data.AppSettings
 import com.example.ebf.data.PageTurn
 import com.example.ebf.data.ThemeMode
+import com.example.ebf.data.ZoomMode
 
 @Composable
 fun SettingsDialog(
     settings: AppSettings,
     onThemeChange: (ThemeMode) -> Unit,
     onDarkPagesChange: (Boolean) -> Unit,
+    onPageSizeChange: (ZoomMode) -> Unit,
     onPageTurnChange: (PageTurn) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -38,7 +42,7 @@ fun SettingsDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings)) },
         text = {
-            Column {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
                 SectionTitle(stringResource(R.string.settings_theme))
                 Column(Modifier.selectableGroup()) {
                     ThemeMode.entries.forEach { mode ->
@@ -61,6 +65,21 @@ fun SettingsDialog(
                     checked = settings.darkPages,
                     onCheckedChange = onDarkPagesChange,
                 )
+                SectionTitle(stringResource(R.string.settings_page_size))
+                Column(Modifier.selectableGroup()) {
+                    RadioRow(
+                        label = stringResource(R.string.zoom_fit_page),
+                        hint = stringResource(R.string.zoom_fit_page_hint),
+                        selected = settings.pageSize == ZoomMode.FIT_PAGE,
+                        onClick = { onPageSizeChange(ZoomMode.FIT_PAGE) },
+                    )
+                    RadioRow(
+                        label = stringResource(R.string.zoom_crop),
+                        hint = stringResource(R.string.zoom_crop_hint),
+                        selected = settings.pageSize == ZoomMode.CROP_MARGINS,
+                        onClick = { onPageSizeChange(ZoomMode.CROP_MARGINS) },
+                    )
+                }
                 SectionTitle(stringResource(R.string.settings_page_turn))
                 Column(Modifier.selectableGroup()) {
                     RadioRow(
@@ -111,7 +130,7 @@ private fun SwitchRow(label: String, hint: String, checked: Boolean, onCheckedCh
 }
 
 @Composable
-internal fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
+internal fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit, hint: String? = null) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -120,6 +139,11 @@ internal fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
             .padding(vertical = 2.dp),
     ) {
         RadioButton(selected = selected, onClick = null)
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
+        Column(Modifier.padding(start = 12.dp)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            if (hint != null) {
+                Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }

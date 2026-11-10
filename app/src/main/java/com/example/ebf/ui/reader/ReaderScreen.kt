@@ -27,13 +27,9 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,7 +38,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -69,7 +64,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ebf.R
 import com.example.ebf.data.AppSettings
-import com.example.ebf.data.ZoomMode
 import com.example.ebf.ui.settings.ThemeToggleButton
 import com.example.ebf.ui.theme.LocalDarkTheme
 import com.example.ebf.ui.theme.LocalReaderColors
@@ -120,7 +114,6 @@ private fun Reader(
     val pageCount = ready.pageCount
     val pagerState = rememberPagerState(initialPage = ready.initialPage) { pageCount }
     val scope = rememberCoroutineScope()
-    val zoom by vm.zoom.collectAsStateWithLifecycle()
     var barsVisible by rememberSaveable { mutableStateOf(true) }
 
     // Fortschritt speichern und die Leisten beim Weiterblättern ausblenden.
@@ -150,7 +143,7 @@ private fun Reader(
                 vm = vm,
                 page = page,
                 pageCount = pageCount,
-                zoom = zoom,
+                zoom = settings.pageSize,
                 pageTurn = settings.pageTurn,
                 darkPages = LocalDarkTheme.current && settings.darkPages,
                 pageOffset = { (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction },
@@ -187,8 +180,6 @@ private fun Reader(
             ReaderBottomBar(
                 currentPage = pagerState.currentPage,
                 pageCount = pageCount,
-                zoom = zoom,
-                onZoomChange = vm::setZoom,
                 onSeek = { page -> scope.launch { pagerState.scrollToPage(page) } },
             )
         }
@@ -227,8 +218,6 @@ private fun ReaderTopBar(
 private fun ReaderBottomBar(
     currentPage: Int,
     pageCount: Int,
-    zoom: ZoomMode,
-    onZoomChange: (ZoomMode) -> Unit,
     onSeek: (Int) -> Unit,
 ) {
     var dragValue by remember { mutableStateOf<Float?>(null) }
@@ -243,17 +232,14 @@ private fun ReaderBottomBar(
             Modifier
                 .navigationBarsPadding()
                 .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
-                .padding(start = 8.dp, end = 20.dp, top = 4.dp, bottom = 8.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ZoomMenu(zoom = zoom, onZoomChange = onZoomChange)
-                Text(
-                    text = stringResource(R.string.page_of, shownPage + 1, pageCount),
-                    style = MaterialTheme.typography.labelLarge,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            Text(
+                text = stringResource(R.string.page_of, shownPage + 1, pageCount),
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
             if (pageCount > 1) {
                 Slider(
                     value = dragValue ?: currentPage.toFloat(),
@@ -267,53 +253,6 @@ private fun ReaderBottomBar(
             }
         }
     }
-}
-
-/** Dropdown mit den festen Zoom-Formaten. */
-@Composable
-private fun ZoomMenu(zoom: ZoomMode, onZoomChange: (ZoomMode) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        TextButton(onClick = { expanded = true }) {
-            Text(stringResource(zoom.label()))
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = stringResource(R.string.zoom))
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            ZoomMode.entries.forEach { mode ->
-                DropdownMenuItem(
-                    text = {
-                        Column {
-                            Text(stringResource(mode.label()), style = MaterialTheme.typography.bodyLarge)
-                            Text(
-                                stringResource(mode.hint()),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    },
-                    trailingIcon = {
-                        if (mode == zoom) Icon(Icons.Filled.Check, contentDescription = null)
-                    },
-                    onClick = {
-                        expanded = false
-                        onZoomChange(mode)
-                    },
-                )
-            }
-        }
-    }
-}
-
-private fun ZoomMode.label() = when (this) {
-    ZoomMode.FIT_PAGE -> R.string.zoom_fit_page
-    ZoomMode.FIT_WIDTH -> R.string.zoom_fit_width
-    ZoomMode.CROP_MARGINS -> R.string.zoom_crop
-}
-
-private fun ZoomMode.hint() = when (this) {
-    ZoomMode.FIT_PAGE -> R.string.zoom_fit_page_hint
-    ZoomMode.FIT_WIDTH -> R.string.zoom_fit_width_hint
-    ZoomMode.CROP_MARGINS -> R.string.zoom_crop_hint
 }
 
 @Composable

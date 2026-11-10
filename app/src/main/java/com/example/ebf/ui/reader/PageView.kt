@@ -97,7 +97,7 @@ internal fun PageView(
         val availableHeight = maxHeight - PageVPadding * 2
         val width = when (zoom) {
             ZoomMode.FIT_PAGE -> minOf(availableWidth, availableHeight / aspect)
-            ZoomMode.FIT_WIDTH, ZoomMode.CROP_MARGINS -> availableWidth
+            ZoomMode.CROP_MARGINS -> availableWidth
         }
         val height = width * aspect
         val scrollable = height > availableHeight + 1.dp

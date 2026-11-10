@@ -11,8 +11,6 @@ data class Book(
     val pageCount: Int,
     /** Zuletzt gelesene Seite (0-basiert). */
     val lastPage: Int = 0,
-    /** Zuletzt gewähltes Zoom-Format für dieses Buch. */
-    val zoom: ZoomMode = ZoomMode.FIT_PAGE,
     /** Dateiname und Größe der Original-PDF, um Duplikate zu erkennen. */
     val fileName: String? = null,
     val fileSize: Long = -1,
@@ -56,7 +54,6 @@ internal object BookJson {
                     .put("title", book.title)
                     .put("pageCount", book.pageCount)
                     .put("lastPage", book.lastPage)
-                    .put("zoom", book.zoom.name)
                     .put("fileName", book.fileName ?: "")
                     .put("fileSize", book.fileSize)
                     .put("addedAt", book.addedAt)
@@ -78,7 +75,6 @@ internal object BookJson {
                 title = o.optString("title", "PDF"),
                 pageCount = o.optInt("pageCount", 0),
                 lastPage = o.optInt("lastPage", 0),
-                zoom = enumOrDefault(o.optString("zoom"), ZoomMode.FIT_PAGE),
                 fileName = o.optString("fileName").ifEmpty { null },
                 fileSize = o.optLong("fileSize", -1),
                 addedAt = addedAt,

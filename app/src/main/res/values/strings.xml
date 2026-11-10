@@ -22,13 +22,10 @@
     <string name="back">Zurück</string>
     <string name="page_description">Seite %1$d</string>
     <string name="remove_from_library">Aus Bibliothek entfernen</string>
-    <string name="zoom">Zoom</string>
     <string name="zoom_fit_page">Ganze Seite</string>
     <string name="zoom_fit_page_hint">Die komplette Seite ist sichtbar</string>
-    <string name="zoom_fit_width">Seitenbreite</string>
-    <string name="zoom_fit_width_hint">Füllt die Breite, nach unten scrollen</string>
     <string name="zoom_crop">Ränder entfernen</string>
-    <string name="zoom_crop_hint">Weiße Ränder weg, größere Schrift</string>
+    <string name="zoom_crop_hint">Weiße Ränder weg, größere Schrift. Hohe Seiten scrollen.</string>
 
     <!-- Einstellungen -->
     <string name="settings">Einstellungen</string>
@@ -40,6 +37,7 @@
     <string name="dark_pages_hint">Helle Schrift auf dunklem Papier, Bilder behalten ihre Farbtöne.</string>
     <string name="switch_to_dark">Dunkles Design</string>
     <string name="switch_to_light">Helles Design</string>
+    <string name="settings_page_size">Seitengröße</string>
     <string name="settings_page_turn">Blättern</string>
     <string name="page_turn_curl">Umblättern wie im Buch (3D)</string>
     <string name="page_turn_slide">Schieben</string>
