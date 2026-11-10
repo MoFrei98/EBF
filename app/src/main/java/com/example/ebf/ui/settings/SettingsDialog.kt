@@ -36,6 +36,7 @@ fun SettingsDialog(
     onDarkPagesChange: (Boolean) -> Unit,
     onPageSizeChange: (ZoomMode) -> Unit,
     onPageTurnChange: (PageTurn) -> Unit,
+    onChooseLibraryFolder: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -43,6 +44,23 @@ fun SettingsDialog(
         title = { Text(stringResource(R.string.settings)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
+                SectionTitle(stringResource(R.string.settings_library))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            settings.libraryLabel ?: stringResource(R.string.library_folder_none),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Text(
+                            stringResource(R.string.library_folder_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    TextButton(onClick = onChooseLibraryFolder) {
+                        Text(stringResource(if (settings.libraryTree != null) R.string.change else R.string.choose))
+                    }
+                }
                 SectionTitle(stringResource(R.string.settings_theme))
                 Column(Modifier.selectableGroup()) {
                     ThemeMode.entries.forEach { mode ->

@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.map
 /** Helles oder dunkles Design. */
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** Reihenfolge der Bücher in der Bibliothek. */
+enum class LibrarySort { RECENT, TITLE }
+
 /** Wie die Seiten beim Blättern animiert werden. */
 enum class PageTurn {
     /** Die obere Seite gleitet weg und gibt die darunterliegende frei (wie im Buch). */
@@ -27,6 +30,11 @@ data class AppSettings(
     /** Seitengröße im Reader, gilt für alle Bücher. */
     val pageSize: ZoomMode = ZoomMode.FIT_PAGE,
     val pageTurn: PageTurn = PageTurn.CURL,
+    /** Bibliotheksordner auf dem Gerät (Tree-URI) oder `null`, solange keiner gewählt ist. */
+    val libraryTree: String? = null,
+    /** Lesbare Bezeichnung des Bibliotheksordners, z. B. "Documents/EBF". */
+    val libraryLabel: String? = null,
+    val sort: LibrarySort = LibrarySort.RECENT,
 )
 
 class SettingsRepository(private val context: Context) {
@@ -35,6 +43,9 @@ class SettingsRepository(private val context: Context) {
     private val darkPagesKey = booleanPreferencesKey("dark_pages")
     private val pageTurnKey = stringPreferencesKey("page_turn")
     private val pageSizeKey = stringPreferencesKey("page_size")
+    private val libraryTreeKey = stringPreferencesKey("library_tree")
+    private val libraryLabelKey = stringPreferencesKey("library_label")
+    private val sortKey = stringPreferencesKey("sort")
 
     val settings: Flow<AppSettings> = context.ebfDataStore.data
         .map { prefs ->
@@ -43,6 +54,9 @@ class SettingsRepository(private val context: Context) {
                 darkPages = prefs[darkPagesKey] ?: true,
                 pageSize = enumOrDefault(prefs[pageSizeKey], ZoomMode.FIT_PAGE),
                 pageTurn = enumOrDefault(prefs[pageTurnKey], PageTurn.CURL),
+                libraryTree = prefs[libraryTreeKey],
+                libraryLabel = prefs[libraryLabelKey],
+                sort = enumOrDefault(prefs[sortKey], LibrarySort.RECENT),
             )
         }
         .distinctUntilChanged()
@@ -61,6 +75,17 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPageTurn(value: PageTurn) {
         context.ebfDataStore.edit { it[pageTurnKey] = value.name }
+    }
+
+    suspend fun setLibraryFolder(treeUri: String, label: String) {
+        context.ebfDataStore.edit {
+            it[libraryTreeKey] = treeUri
+            it[libraryLabelKey] = label
+        }
+    }
+
+    suspend fun setSort(value: LibrarySort) {
+        context.ebfDataStore.edit { it[sortKey] = value.name }
     }
 }
 

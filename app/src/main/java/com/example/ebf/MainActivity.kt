@@ -4,7 +4,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -29,6 +31,7 @@ import androidx.navigation.navArgument
 import com.example.ebf.ui.library.LibraryScreen
 import com.example.ebf.ui.library.LibraryViewModel
 import com.example.ebf.data.AppSettings
+import com.example.ebf.data.LibraryTree
 import com.example.ebf.data.SettingsRepository
 import com.example.ebf.data.ThemeMode
 import com.example.ebf.ui.settings.ThemeToggleButton
@@ -70,7 +73,7 @@ class MainActivity : ComponentActivity() {
     /** "Öffnen mit → EBF" aus einer anderen App. */
     private fun handleIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_VIEW) {
-            intent.data?.let { libraryViewModel.import(it) }
+            intent.data?.let { libraryViewModel.import(it, intoCurrentFolder = false) }
         }
     }
 }
@@ -91,6 +94,11 @@ private fun EbfNavigation(
     val scope = rememberCoroutineScope()
     var showSettings by rememberSaveable { mutableStateOf(false) }
     val openSettings = { showSettings = true }
+    // System-Dialog zur Wahl des Bibliotheksordners, startet in "Documents".
+    val treePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) libraryViewModel.setLibraryFolder(uri)
+    }
+    val chooseLibraryFolder: () -> Unit = { treePicker.launch(LibraryTree.DOCUMENTS_HINT) }
     val darkTheme = LocalDarkTheme.current
     val toggleDark: () -> Unit = {
         scope.launch { settingsRepository.setTheme(if (darkTheme) ThemeMode.LIGHT else ThemeMode.DARK) }
@@ -110,6 +118,7 @@ private fun EbfNavigation(
             LibraryScreen(
                 vm = libraryViewModel,
                 onOpenBook = { navController.navigate(Routes.reader(it)) },
+                onChooseLibraryFolder = chooseLibraryFolder,
                 topBarActions = {
                     ThemeToggleButton(onToggle = toggleDark)
                     IconButton(onClick = openSettings) {
@@ -140,6 +149,10 @@ private fun EbfNavigation(
             onDarkPagesChange = { scope.launch { settingsRepository.setDarkPages(it) } },
             onPageSizeChange = { scope.launch { settingsRepository.setPageSize(it) } },
             onPageTurnChange = { scope.launch { settingsRepository.setPageTurn(it) } },
+            onChooseLibraryFolder = {
+                showSettings = false
+                chooseLibraryFolder()
+            },
             onDismiss = { showSettings = false },
         )
     }

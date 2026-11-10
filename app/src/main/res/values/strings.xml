@@ -17,6 +17,40 @@
     <string name="cancel">Abbrechen</string>
     <string name="save">Speichern</string>
     <string name="cover_description">Cover von %1$s</string>
+    <string name="book_new">Neu</string>
+    <string name="more_options">Weitere Optionen</string>
+    <string name="refresh">Aktualisieren</string>
+    <string name="sort_by">Sortieren nach</string>
+    <string name="sort_recent">Zuletzt gelesen</string>
+    <string name="sort_title">Titel A–Z</string>
+    <string name="delete">Löschen</string>
+    <string name="create">Anlegen</string>
+    <string name="name_label">Name</string>
+
+    <!-- Ordner -->
+    <string name="new_folder">Neuer Ordner</string>
+    <string name="rename_folder">Ordner umbenennen</string>
+    <string name="folder_options">Ordneroptionen</string>
+    <string name="current_folder">Aktueller Ordner</string>
+    <string name="library_root">Bibliothek (oberste Ebene)</string>
+    <string name="move_to_folder">In Ordner verschieben</string>
+    <string name="move_title">In Ordner verschieben</string>
+    <string name="delete_folder_title">Ordner löschen?</string>
+    <string name="delete_folder_text">Der Ordner „%1$s“ wird vom Gerät gelöscht. Das geht nur, wenn er leer ist.</string>
+    <string name="delete_book_title">PDF löschen?</string>
+    <string name="delete_book_text">„%1$s“ liegt im Bibliotheksordner und wird vom Gerät gelöscht. Das lässt sich nicht rückgängig machen.</string>
+    <string name="empty_folder_title">Dieser Ordner ist leer</string>
+    <string name="empty_folder_text">Füge eine PDF hinzu oder verschiebe Bücher über ⋮ → In Ordner verschieben hierher.</string>
+    <string name="library_folder_title">Bibliotheksordner wählen</string>
+    <string name="library_folder_text">EBF sortiert deine Bücher in echten Ordnern auf dem Gerät. Wähle dafür einmal einen Ordner, zum Beispiel „Documents“. Tipp: Im Auswahldialog kannst du über ⋮ → Neuer Ordner direkt einen Ordner „EBF“ anlegen.\n\nPDFs und Unterordner, die schon darin liegen, erscheinen automatisch in der Bibliothek. Beim Einsortieren werden PDFs in diesen Ordner verschoben.</string>
+    <string name="library_folder_choose">Bibliotheksordner wählen</string>
+    <string name="info_moved">Verschoben nach „%1$s“</string>
+    <string name="info_copied">Die PDF wurde kopiert. Das Original durfte nicht gelöscht werden.</string>
+    <string name="info_library_folder_set">Bibliotheksordner festgelegt</string>
+    <plurals name="book_count">
+        <item quantity="one">%d Buch</item>
+        <item quantity="other">%d Bücher</item>
+    </plurals>
 
     <!-- Reader -->
     <string name="back">Zurück</string>
@@ -37,6 +71,11 @@
     <string name="dark_pages_hint">Helle Schrift auf dunklem Papier, Bilder behalten ihre Farbtöne.</string>
     <string name="switch_to_dark">Dunkles Design</string>
     <string name="switch_to_light">Helles Design</string>
+    <string name="settings_library">Bibliotheksordner</string>
+    <string name="library_folder_none">Noch nicht festgelegt</string>
+    <string name="library_folder_hint">Ordner auf dem Gerät, in dem EBF deine Bücher sortiert.</string>
+    <string name="change">Ändern</string>
+    <string name="choose">Wählen</string>
     <string name="settings_page_size">Seitengröße</string>
     <string name="settings_page_turn">Blättern</string>
     <string name="page_turn_curl">Umblättern wie im Buch (3D)</string>
@@ -48,4 +87,15 @@
     <string name="error_missing">Die Datei ist nicht mehr erreichbar. Wurde sie verschoben oder gelöscht?</string>
     <string name="error_unknown_book">Dieses Buch ist nicht mehr in der Bibliothek.</string>
     <string name="error_empty_pdf">Die PDF enthält keine Seiten.</string>
+    <string name="error_unknown">Etwas ist schiefgelaufen.</string>
+    <string name="error_no_library_folder">Bitte zuerst einen Bibliotheksordner wählen.</string>
+    <string name="error_library_unreadable">Der Bibliotheksordner ist nicht erreichbar. Wähle ihn in den Einstellungen neu.</string>
+    <string name="error_folder_missing">Den Ordner gibt es nicht mehr. Ziehe die Bibliothek nach unten, um sie zu aktualisieren.</string>
+    <string name="error_move">Die PDF konnte nicht in den Ordner gelegt werden.</string>
+    <string name="error_delete">Löschen ist fehlgeschlagen.</string>
+    <string name="error_folder_name">Bitte einen gültigen Namen eingeben.</string>
+    <string name="error_folder_exists">Einen Ordner mit diesem Namen gibt es hier schon.</string>
+    <string name="error_folder_create">Der Ordner konnte nicht angelegt werden.</string>
+    <string name="error_folder_rename">Der Ordner konnte nicht umbenannt werden.</string>
+    <string name="error_folder_not_empty">Der Ordner ist nicht leer. Verschiebe oder lösche zuerst seinen Inhalt.</string>
 </resources>

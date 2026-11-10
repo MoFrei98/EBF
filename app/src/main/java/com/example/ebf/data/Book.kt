@@ -14,11 +14,19 @@ data class Book(
     /** Dateiname und Größe der Original-PDF, um Duplikate zu erkennen. */
     val fileName: String? = null,
     val fileSize: Long = -1,
+    /**
+     * Ordner im Bibliotheksordner auf dem Gerät ("" = oberste Ebene).
+     * `null`, wenn die PDF woanders liegt (z. B. in Downloads).
+     */
+    val folder: String? = null,
     val addedAt: Long = System.currentTimeMillis(),
     val lastOpenedAt: Long = addedAt,
 ) {
     /** Stabile ID für Dateinamen (Cover, interne Kopie). */
     val key: String get() = sha1(uri)
+
+    /** Liegt die PDF im Bibliotheksordner auf dem Gerät? */
+    val inLibraryFolder: Boolean get() = folder != null
 
     /** Lesefortschritt von 0 bis 1. */
     val progress: Float get() = if (pageCount <= 0) 0f else (lastPage + 1f) / pageCount
@@ -56,6 +64,7 @@ internal object BookJson {
                     .put("lastPage", book.lastPage)
                     .put("fileName", book.fileName ?: "")
                     .put("fileSize", book.fileSize)
+                    .put("folder", book.folder ?: JSONObject.NULL)
                     .put("addedAt", book.addedAt)
                     .put("lastOpenedAt", book.lastOpenedAt)
             )
@@ -77,6 +86,7 @@ internal object BookJson {
                 lastPage = o.optInt("lastPage", 0),
                 fileName = o.optString("fileName").ifEmpty { null },
                 fileSize = o.optLong("fileSize", -1),
+                folder = if (o.isNull("folder")) null else o.optString("folder"),
                 addedAt = addedAt,
                 lastOpenedAt = o.optLong("lastOpenedAt", addedAt),
             )
