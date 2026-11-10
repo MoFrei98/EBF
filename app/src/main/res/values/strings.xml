@@ -1,3 +1,31 @@
 <resources>
     <string name="app_name">EBF</string>
+
+    <!-- Bibliothek -->
+    <string name="library_title">Bibliothek</string>
+    <string name="add_pdf">PDF hinzufügen</string>
+    <string name="empty_title">Deine Bibliothek ist leer</string>
+    <string name="empty_text">Füge eine PDF hinzu, um mit dem Lesen zu beginnen. PDFs aus anderen Apps kannst du auch über „Öffnen mit → EBF“ öffnen.</string>
+    <string name="page_of">Seite %1$d von %2$d</string>
+    <string name="book_options">Optionen</string>
+    <string name="rename">Umbenennen</string>
+    <string name="rename_title">Buch umbenennen</string>
+    <string name="title_label">Titel</string>
+    <string name="remove">Entfernen</string>
+    <string name="remove_title">Buch entfernen?</string>
+    <string name="remove_text">„%1$s“ wird aus der Bibliothek entfernt. Die PDF-Datei auf deinem Gerät bleibt erhalten.</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="save">Speichern</string>
+    <string name="cover_description">Cover von %1$s</string>
+
+    <!-- Reader -->
+    <string name="back">Zurück</string>
+    <string name="page_description">Seite %1$d</string>
+    <string name="remove_from_library">Aus Bibliothek entfernen</string>
+
+    <!-- Fehler -->
+    <string name="error_open">Die PDF konnte nicht geöffnet werden. Ist sie beschädigt oder passwortgeschützt?</string>
+    <string name="error_missing">Die Datei ist nicht mehr erreichbar. Wurde sie verschoben oder gelöscht?</string>
+    <string name="error_unknown_book">Dieses Buch ist nicht mehr in der Bibliothek.</string>
+    <string name="error_empty_pdf">Die PDF enthält keine Seiten.</string>
 </resources>
