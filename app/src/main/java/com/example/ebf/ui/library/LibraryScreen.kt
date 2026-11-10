@@ -263,6 +263,7 @@ private fun BookCover(book: Book, file: File) {
                 bitmap = bitmap,
                 contentDescription = stringResource(R.string.cover_description, book.title),
                 contentScale = ContentScale.Crop,
+                alignment = Alignment.TopCenter,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {

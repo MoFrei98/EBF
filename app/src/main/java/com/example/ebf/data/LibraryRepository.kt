@@ -84,6 +84,14 @@ class LibraryRepository(private val context: Context) {
 
     private suspend fun importInternal(source: Uri): Book {
         val (displayName, size) = queryMeta(source)
+
+        // Dieselbe Datei ist schon in der Bibliothek, z. B. einmal über den Dateidialog
+        // und einmal über "Öffnen mit" geöffnet.
+        if (displayName != null && size >= 0) {
+            books.first().firstOrNull { it.fileName == displayName && it.fileSize == size }
+                ?.let { existing -> return touch(existing) }
+        }
+
         val persisted = source.scheme == ContentResolver.SCHEME_CONTENT && runCatching {
             context.contentResolver.takePersistableUriPermission(
                 source, Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -91,11 +99,7 @@ class LibraryRepository(private val context: Context) {
         }.isSuccess
         val uri = if (persisted) source else copyToLibrary(source, displayName, size)
 
-        get(uri.toString())?.let { existing ->
-            val touched = existing.copy(lastOpenedAt = System.currentTimeMillis())
-            update(existing.uri) { touched }
-            return touched
-        }
+        get(uri.toString())?.let { existing -> return touch(existing) }
 
         val document = try {
             PdfDocument.open(context, uri)
@@ -111,6 +115,8 @@ class LibraryRepository(private val context: Context) {
                 uri = uri.toString(),
                 title = Book.titleFromFileName(displayName ?: "PDF"),
                 pageCount = document.pageCount,
+                fileName = displayName,
+                fileSize = size,
             )
             saveCover(document, book)
             store.edit { prefs ->
@@ -120,6 +126,12 @@ class LibraryRepository(private val context: Context) {
         } finally {
             document.closeNow()
         }
+    }
+
+    private suspend fun touch(book: Book): Book {
+        val touched = book.copy(lastOpenedAt = System.currentTimeMillis())
+        update(book.uri) { touched }
+        return touched
     }
 
     private suspend fun saveCover(document: PdfDocument, book: Book) {

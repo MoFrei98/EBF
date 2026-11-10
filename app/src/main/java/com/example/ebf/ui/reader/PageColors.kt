@@ -22,6 +22,11 @@ internal object PageColors {
         ColorMatrix().apply { setToScale(1f, 0.992f, 0.973f, 1f) }
     )
 
+    /** Bildseiten im Dark Mode: nicht invertieren, nur etwas abdunkeln. */
+    val dimmedImage: ColorFilter = ColorFilter.colorMatrix(
+        ColorMatrix().apply { setToScale(0.8f, 0.8f, 0.8f, 1f) }
+    )
+
     /**
      * Dunkle Seite: Weiß wird zu [paper], Schwarz zu [ink].
      * Gedämpfte Werte statt reinem Schwarz/Weiß sind angenehmer für die Augen.

@@ -14,8 +14,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.ebf.R
+import com.example.ebf.data.ZoomMode
 import com.example.ebf.ebfApp
+import com.example.ebf.pdf.Crop
+import com.example.ebf.pdf.CropMath
+import com.example.ebf.pdf.PageAnalysis
 import com.example.ebf.pdf.PdfDocument
+import com.example.ebf.pdf.TypicalBounds
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +44,14 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
     private val _state = MutableStateFlow<ReaderState>(ReaderState.Loading)
     val state: StateFlow<ReaderState> = _state.asStateFlow()
 
+    private val _zoom = MutableStateFlow(ZoomMode.FIT_PAGE)
+    val zoom: StateFlow<ZoomMode> = _zoom.asStateFlow()
+
     private var document: PdfDocument? = null
+
+    /** Analyse je Seite. Nur auf dem Main-Thread benutzt. */
+    private val analyses = HashMap<Int, PageAnalysis>()
+    private var typicalBounds: Deferred<TypicalBounds>? = null
 
     private val bitmaps = object : LruCache<String, Bitmap>(cacheSizeBytes()) {
         override fun sizeOf(key: String, value: Bitmap) = value.byteCount
@@ -66,6 +80,7 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
             return fail(R.string.error_empty_pdf)
         }
         document = doc
+        _zoom.value = book.zoom
         val now = System.currentTimeMillis()
         ebf.appScope.launch {
             repo.update(bookUri) { it.copy(lastOpenedAt = now, pageCount = doc.pageCount) }
@@ -87,10 +102,43 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
     /** Seitengröße in PDF-Punkten. */
     suspend fun pageSize(page: Int): Size = requireDocument().pageSize(page)
 
-    suspend fun renderPage(page: Int, widthPx: Int): ImageBitmap {
-        val key = "$page@$widthPx"
+    fun setZoom(mode: ZoomMode) {
+        _zoom.value = mode
+        ebf.appScope.launch { repo.update(bookUri) { it.copy(zoom = mode) } }
+    }
+
+    /** Ausschnitt einer Seite für das Format "Ränder entfernen". */
+    suspend fun pageCrop(page: Int): Crop {
+        val doc = requireDocument()
+        val typical = (typicalBounds ?: viewModelScope.async { computeTypicalBounds(doc) }
+            .also { typicalBounds = it }).await()
+        return CropMath.cropFor(boundsOf(doc, page), typical.forPage(page))
+    }
+
+    /** Ob die Seite überwiegend ein Bild ist (wird im Dark Mode nicht invertiert). */
+    suspend fun isImagePage(page: Int): Boolean = analysisOf(requireDocument(), page).isImage
+
+    private suspend fun analysisOf(doc: PdfDocument, page: Int): PageAnalysis =
+        analyses[page] ?: doc.analyze(page).also { analyses[page] = it }
+
+    private suspend fun boundsOf(doc: PdfDocument, page: Int): Crop? = analysisOf(doc, page).bounds
+
+    /** Typische Ränder aus einer Stichprobe über das ganze Dokument (ohne Cover). */
+    private suspend fun computeTypicalBounds(doc: PdfDocument): TypicalBounds {
+        val first = if (doc.pageCount > 2) 1 else 0
+        val available = doc.pageCount - first
+        val count = minOf(BOUNDS_SAMPLES, available)
+        val samples = (0 until count)
+            .map { first + (it.toLong() * available / count).toInt() }
+            .distinct()
+            .mapNotNull { page -> boundsOf(doc, page)?.let { page to it } }
+        return TypicalBounds.from(samples)
+    }
+
+    suspend fun renderPage(page: Int, widthPx: Int, crop: Crop = Crop.FULL): ImageBitmap {
+        val key = "$page@$widthPx@$crop"
         bitmaps.get(key)?.let { return it.asImageBitmap() }
-        val bitmap = requireDocument().render(page, widthPx)
+        val bitmap = requireDocument().render(page, widthPx, crop.toRectF())
         bitmaps.put(key, bitmap)
         return bitmap.asImageBitmap()
     }
@@ -120,6 +168,8 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
                 ReaderViewModel(app, bookUri)
             }
         }
+
+        private const val BOUNDS_SAMPLES = 16
 
         private fun cacheSizeBytes(): Int =
             (Runtime.getRuntime().maxMemory() / 5).coerceAtMost(160L * 1024 * 1024).toInt()

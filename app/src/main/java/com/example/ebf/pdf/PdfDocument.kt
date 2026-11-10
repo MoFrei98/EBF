@@ -81,6 +81,22 @@ class PdfDocument private constructor(
         }
     }
 
+    /**
+     * Analysiert eine kleine Vorschau der Seite: Wo steht etwas (für "Ränder entfernen")
+     * und ist die Seite überwiegend ein Bild (für den Dark Mode)?
+     */
+    suspend fun analyze(index: Int): PageAnalysis {
+        val preview = render(index, BOUNDS_PREVIEW_WIDTH_PX)
+        return withContext(Dispatchers.Default) {
+            val w = preview.width
+            val h = preview.height
+            val pixels = IntArray(w * h)
+            preview.getPixels(pixels, 0, w, 0, 0, w, h)
+            preview.recycle()
+            CropMath.analyze(pixels, w, h)
+        }
+    }
+
     /** Schließt das Dokument, sobald laufende Render-Vorgänge fertig sind. */
     fun close() {
         closeScope.launch { closeNow() }
@@ -108,6 +124,8 @@ class PdfDocument private constructor(
 
         /** Obergrenze pro Bitmap (~24 MB), damit große Tablets nicht den Speicher sprengen. */
         private const val MAX_PIXELS = 6_000_000L
+
+        private const val BOUNDS_PREVIEW_WIDTH_PX = 300
 
         private val closeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

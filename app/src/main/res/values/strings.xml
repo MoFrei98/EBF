@@ -22,6 +22,13 @@
     <string name="back">Zurück</string>
     <string name="page_description">Seite %1$d</string>
     <string name="remove_from_library">Aus Bibliothek entfernen</string>
+    <string name="zoom">Zoom</string>
+    <string name="zoom_fit_page">Ganze Seite</string>
+    <string name="zoom_fit_page_hint">Die komplette Seite ist sichtbar</string>
+    <string name="zoom_fit_width">Seitenbreite</string>
+    <string name="zoom_fit_width_hint">Füllt die Breite, nach unten scrollen</string>
+    <string name="zoom_crop">Ränder entfernen</string>
+    <string name="zoom_crop_hint">Weiße Ränder weg, größere Schrift</string>
 
     <!-- Einstellungen -->
     <string name="settings">Einstellungen</string>
