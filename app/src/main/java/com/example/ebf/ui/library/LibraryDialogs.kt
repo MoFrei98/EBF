@@ -101,7 +101,7 @@ internal fun LibraryFolderDialog(onChoose: () -> Unit, onDismiss: () -> Unit) {
             TextButton(onClick = {
                 onDismiss()
                 onChoose()
-            }) { Text(stringResource(R.string.library_folder_choose)) }
+            }) { Text(stringResource(R.string.choose_folder)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )

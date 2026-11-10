@@ -10,11 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,7 +31,6 @@ import com.example.ebf.data.ZoomMode
 fun SettingsDialog(
     settings: AppSettings,
     onThemeChange: (ThemeMode) -> Unit,
-    onDarkPagesChange: (Boolean) -> Unit,
     onPageSizeChange: (ZoomMode) -> Unit,
     onPageTurnChange: (PageTurn) -> Unit,
     onChooseLibraryFolder: () -> Unit,
@@ -77,12 +74,6 @@ fun SettingsDialog(
                         )
                     }
                 }
-                SwitchRow(
-                    label = stringResource(R.string.dark_pages),
-                    hint = stringResource(R.string.dark_pages_hint),
-                    checked = settings.darkPages,
-                    onCheckedChange = onDarkPagesChange,
-                )
                 SectionTitle(stringResource(R.string.settings_page_size))
                 Column(Modifier.selectableGroup()) {
                     RadioRow(
@@ -102,11 +93,13 @@ fun SettingsDialog(
                 Column(Modifier.selectableGroup()) {
                     RadioRow(
                         label = stringResource(R.string.page_turn_curl),
+                        hint = stringResource(R.string.page_turn_curl_hint),
                         selected = settings.pageTurn == PageTurn.CURL,
                         onClick = { onPageTurnChange(PageTurn.CURL) },
                     )
                     RadioRow(
                         label = stringResource(R.string.page_turn_slide),
+                        hint = stringResource(R.string.page_turn_slide_hint),
                         selected = settings.pageTurn == PageTurn.SLIDE,
                         onClick = { onPageTurnChange(PageTurn.SLIDE) },
                     )
@@ -128,23 +121,6 @@ internal fun SectionTitle(text: String) {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(bottom = 4.dp),
     )
-}
-
-@Composable
-private fun SwitchRow(label: String, hint: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(value = checked, onValueChange = onCheckedChange, role = Role.Switch)
-            .padding(vertical = 8.dp),
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyLarge)
-            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Switch(checked = checked, onCheckedChange = null, modifier = Modifier.padding(start = 12.dp))
-    }
 }
 
 @Composable

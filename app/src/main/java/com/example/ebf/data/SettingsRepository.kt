@@ -1,7 +1,6 @@
 package com.example.ebf.data
 
 import android.content.Context
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
@@ -25,8 +24,6 @@ enum class PageTurn {
 
 data class AppSettings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
-    /** Im Dark Mode auch die PDF-Seiten dunkel darstellen. */
-    val darkPages: Boolean = true,
     /** Seitengröße im Reader, gilt für alle Bücher. */
     val pageSize: ZoomMode = ZoomMode.FIT_PAGE,
     val pageTurn: PageTurn = PageTurn.CURL,
@@ -40,7 +37,6 @@ data class AppSettings(
 class SettingsRepository(private val context: Context) {
 
     private val themeKey = stringPreferencesKey("theme")
-    private val darkPagesKey = booleanPreferencesKey("dark_pages")
     private val pageTurnKey = stringPreferencesKey("page_turn")
     private val pageSizeKey = stringPreferencesKey("page_size")
     private val libraryTreeKey = stringPreferencesKey("library_tree")
@@ -51,7 +47,6 @@ class SettingsRepository(private val context: Context) {
         .map { prefs ->
             AppSettings(
                 theme = enumOrDefault(prefs[themeKey], ThemeMode.SYSTEM),
-                darkPages = prefs[darkPagesKey] ?: true,
                 pageSize = enumOrDefault(prefs[pageSizeKey], ZoomMode.FIT_PAGE),
                 pageTurn = enumOrDefault(prefs[pageTurnKey], PageTurn.CURL),
                 libraryTree = prefs[libraryTreeKey],
@@ -63,10 +58,6 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTheme(value: ThemeMode) {
         context.ebfDataStore.edit { it[themeKey] = value.name }
-    }
-
-    suspend fun setDarkPages(value: Boolean) {
-        context.ebfDataStore.edit { it[darkPagesKey] = value }
     }
 
     suspend fun setPageSize(value: ZoomMode) {

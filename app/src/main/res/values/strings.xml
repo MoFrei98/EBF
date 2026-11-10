@@ -42,8 +42,9 @@
     <string name="empty_folder_title">Dieser Ordner ist leer</string>
     <string name="empty_folder_text">Füge eine PDF hinzu oder verschiebe Bücher über ⋮ → In Ordner verschieben hierher.</string>
     <string name="library_folder_title">Bibliotheksordner wählen</string>
-    <string name="library_folder_text">EBF sortiert deine Bücher in echten Ordnern auf dem Gerät. Wähle dafür einmal einen Ordner, zum Beispiel „Documents“. Tipp: Im Auswahldialog kannst du über ⋮ → Neuer Ordner direkt einen Ordner „EBF“ anlegen.\n\nPDFs und Unterordner, die schon darin liegen, erscheinen automatisch in der Bibliothek. Beim Einsortieren werden PDFs in diesen Ordner verschoben.</string>
+    <string name="library_folder_text">EBF sortiert deine Bücher in echten Ordnern auf dem Gerät. Wähle dafür einmal einen Ordner, zum Beispiel „Documents“. Tipp: Im Auswahldialog kannst du über das Ordner-Symbol oben direkt einen Ordner „EBF“ anlegen.\n\nPDFs und Unterordner, die schon darin liegen, erscheinen automatisch in der Bibliothek. Beim Einsortieren werden PDFs in diesen Ordner verschoben.</string>
     <string name="library_folder_choose">Bibliotheksordner wählen</string>
+    <string name="choose_folder">Ordner wählen</string>
     <string name="info_moved">Verschoben nach „%1$s“</string>
     <string name="info_copied">Die PDF wurde kopiert. Das Original durfte nicht gelöscht werden.</string>
     <string name="info_library_folder_set">Bibliotheksordner festgelegt</string>
@@ -64,11 +65,9 @@
     <!-- Einstellungen -->
     <string name="settings">Einstellungen</string>
     <string name="settings_theme">Design</string>
-    <string name="theme_system">Wie im System</string>
+    <string name="theme_system">System</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
-    <string name="dark_pages">PDF-Seiten im Dark Mode abdunkeln</string>
-    <string name="dark_pages_hint">Helle Schrift auf dunklem Papier, Bilder behalten ihre Farbtöne.</string>
     <string name="switch_to_dark">Dunkles Design</string>
     <string name="switch_to_light">Helles Design</string>
     <string name="settings_library">Bibliotheksordner</string>
@@ -78,8 +77,10 @@
     <string name="choose">Wählen</string>
     <string name="settings_page_size">Seitengröße</string>
     <string name="settings_page_turn">Blättern</string>
-    <string name="page_turn_curl">Umblättern wie im Buch (3D)</string>
-    <string name="page_turn_slide">Schieben</string>
+    <string name="page_turn_curl">Buchseiten</string>
+    <string name="page_turn_curl_hint">Die Seite biegt sich in 3D um, dort wo du sie greifst</string>
+    <string name="page_turn_slide">Slideshow</string>
+    <string name="page_turn_slide_hint">Die Seiten gleiten einfach zur Seite</string>
     <string name="done">Fertig</string>
 
     <!-- Fehler -->
