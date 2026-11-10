@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,6 +53,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -133,11 +138,27 @@ private fun Reader(
     }
 
     Box(Modifier.fillMaxSize()) {
+        // Wo greift der Finger die Seite? Danach richtet sich die Faltung beim Umblättern.
+        // Wird nur beobachtet, nicht verbraucht – Wischen und Tippen funktionieren normal.
+        var grabRootY by remember { mutableFloatStateOf(Float.NaN) }
+        val pagerTop = remember { FloatArray(1) }
+
         HorizontalPager(
             state = pagerState,
             beyondViewportPageCount = 1,
             key = { it },
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { pagerTop[0] = it.positionInRoot().y }
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                            val change = event.changes.firstOrNull() ?: continue
+                            if (change.pressed) grabRootY = pagerTop[0] + change.position.y
+                        }
+                    }
+                },
         ) { page ->
             PageView(
                 vm = vm,
@@ -145,8 +166,10 @@ private fun Reader(
                 pageCount = pageCount,
                 zoom = settings.pageSize,
                 pageTurn = settings.pageTurn,
-                darkPages = LocalDarkTheme.current && settings.darkPages,
+                // Im Dark Mode werden die Seiten immer abgedunkelt.
+                darkPages = LocalDarkTheme.current,
                 pageOffset = { (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction },
+                grabRootY = { grabRootY },
                 onTap = { x, width ->
                     when {
                         x < width * 0.25f -> goTo(pagerState.currentPage - 1)

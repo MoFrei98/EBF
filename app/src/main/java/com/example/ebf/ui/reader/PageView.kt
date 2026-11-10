@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -50,6 +52,8 @@ private val PageVPadding = 16.dp
  * @param pageOffset Abstand dieser Seite zur aktuell sichtbaren Position im Pager:
  *   0 = sichtbar, > 0 = liegt links (schon umgeblättert), < 0 = liegt rechts (kommt noch).
  * @param darkPages PDF-Seite dunkel darstellen (Dark Mode).
+ * @param grabRootY Höhe, an der der Finger zuletzt aufgesetzt hat (Bildschirmkoordinaten, NaN = unbekannt).
+ *   Beim Umblättern hebt sich die Seite zuerst an dieser Stelle.
  * @param onTap Tippen mit x-Position und Breite der Fläche (für die Blätter-Zonen).
  */
 @Composable
@@ -61,6 +65,7 @@ internal fun PageView(
     pageTurn: PageTurn,
     darkPages: Boolean,
     pageOffset: () -> Float,
+    grabRootY: () -> Float,
     onTap: (x: Float, width: Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -112,11 +117,18 @@ internal fun PageView(
             else -> nightFilter
         }
 
+        val paperTop = remember { FloatArray(1) }
         val paper: @Composable () -> Unit = {
             if (turning) {
-                Canvas(Modifier.size(width, height)) {
+                Canvas(
+                    Modifier
+                        .size(width, height)
+                        .onGloballyPositioned { paperTop[0] = it.positionInRoot().y }
+                ) {
+                    val y = grabRootY()
                     drawCurledPage(
                         progress = pageOffset(),
+                        grab = if (y.isNaN()) 0.5f else ((y - paperTop[0]) / size.height).coerceIn(0f, 1f),
                         bitmap = bitmap.takeIf { imagePage != null },
                         colorFilter = colorFilter,
                         paperColor = paperColor,
