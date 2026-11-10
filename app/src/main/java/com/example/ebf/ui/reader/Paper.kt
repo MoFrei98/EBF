@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
-import com.example.ebf.ui.theme.LocalDarkTheme
 import com.example.ebf.ui.theme.LocalReaderColors
 import com.example.ebf.ui.theme.ReaderColors
 import kotlin.math.ceil
@@ -33,6 +32,8 @@ private const val MAX_SHEETS = 3
  */
 @Composable
 internal fun Paper(
+    paperColor: Color,
+    darkPaper: Boolean,
     readFraction: Float,
     turnShadow: () -> Float,
     dim: () -> Float,
@@ -40,7 +41,7 @@ internal fun Paper(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val colors = LocalReaderColors.current
-    val spineAlpha = if (LocalDarkTheme.current) 0.35f else 0.13f
+    val spineAlpha = if (darkPaper) 0.35f else 0.13f
     val leftSheets = ceil(MAX_SHEETS * readFraction).toInt().coerceIn(0, MAX_SHEETS)
     val rightSheets = ceil(MAX_SHEETS * (1f - readFraction)).toInt().coerceIn(0, MAX_SHEETS)
 
@@ -52,7 +53,7 @@ internal fun Paper(
                 if (shadow > 0f) drawTurnShadow(colors.shade, shadow)
             }
             .shadow(3.dp, RectangleShape)
-            .background(colors.paper)
+            .background(paperColor)
             .drawWithContent {
                 drawContent()
                 drawSpineShade(colors.shade, spineAlpha)

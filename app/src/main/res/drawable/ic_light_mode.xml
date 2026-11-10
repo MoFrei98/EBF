@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Sonne: Kreis mit acht Strahlen -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,7.5A4.5,4.5 0 1,0 12,16.5A4.5,4.5 0 1,0 12,7.5Z" />
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:rotation="0">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M11,1.5h2v3.5h-2zM11,19h2v3.5h-2z" />
+    </group>
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:rotation="45">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M11,1.5h2v3.5h-2zM11,19h2v3.5h-2z" />
+    </group>
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:rotation="90">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M11,1.5h2v3.5h-2zM11,19h2v3.5h-2z" />
+    </group>
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:rotation="135">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M11,1.5h2v3.5h-2zM11,19h2v3.5h-2z" />
+    </group>
+</vector>

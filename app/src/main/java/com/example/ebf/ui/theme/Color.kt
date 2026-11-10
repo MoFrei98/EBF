@@ -73,6 +73,8 @@ data class ReaderColors(
     val paperEdge: Color,
     /** Schatten am Bundsteg und beim Umblättern. */
     val shade: Color,
+    /** Schriftfarbe auf dunklen Seiten. */
+    val ink: Color,
 )
 
 internal val LightReaderColors = ReaderColors(
@@ -80,6 +82,7 @@ internal val LightReaderColors = ReaderColors(
     paper = Color(0xFFFFFDF8),
     paperEdge = Color(0xFFD9CFC1),
     shade = Color(0xFF3A2A1A),
+    ink = Color(0xFF000000),
 )
 
 internal val DarkReaderColors = ReaderColors(
@@ -87,4 +90,5 @@ internal val DarkReaderColors = ReaderColors(
     paper = Color(0xFF1F1D1A),
     paperEdge = Color(0xFF3A3631),
     shade = Color(0xFF000000),
+    ink = Color(0xFFDCD5CA),
 )

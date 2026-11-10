@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,10 +24,13 @@ import androidx.compose.ui.unit.dp
 import com.example.ebf.R
 import com.example.ebf.data.AppSettings
 import com.example.ebf.data.PageTurn
+import com.example.ebf.data.ThemeMode
 
 @Composable
 fun SettingsDialog(
     settings: AppSettings,
+    onThemeChange: (ThemeMode) -> Unit,
+    onDarkPagesChange: (Boolean) -> Unit,
     onPageTurnChange: (PageTurn) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -34,6 +39,28 @@ fun SettingsDialog(
         title = { Text(stringResource(R.string.settings)) },
         text = {
             Column {
+                SectionTitle(stringResource(R.string.settings_theme))
+                Column(Modifier.selectableGroup()) {
+                    ThemeMode.entries.forEach { mode ->
+                        RadioRow(
+                            label = stringResource(
+                                when (mode) {
+                                    ThemeMode.SYSTEM -> R.string.theme_system
+                                    ThemeMode.LIGHT -> R.string.theme_light
+                                    ThemeMode.DARK -> R.string.theme_dark
+                                }
+                            ),
+                            selected = settings.theme == mode,
+                            onClick = { onThemeChange(mode) },
+                        )
+                    }
+                }
+                SwitchRow(
+                    label = stringResource(R.string.dark_pages),
+                    hint = stringResource(R.string.dark_pages_hint),
+                    checked = settings.darkPages,
+                    onCheckedChange = onDarkPagesChange,
+                )
                 SectionTitle(stringResource(R.string.settings_page_turn))
                 Column(Modifier.selectableGroup()) {
                     RadioRow(
@@ -64,6 +91,23 @@ internal fun SectionTitle(text: String) {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(bottom = 4.dp),
     )
+}
+
+@Composable
+private fun SwitchRow(label: String, hint: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, onValueChange = onCheckedChange, role = Role.Switch)
+            .padding(vertical = 8.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = null, modifier = Modifier.padding(start = 12.dp))
+    }
 }
 
 @Composable

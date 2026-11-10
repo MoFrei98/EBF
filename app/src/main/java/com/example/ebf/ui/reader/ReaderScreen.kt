@@ -64,6 +64,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ebf.R
 import com.example.ebf.data.AppSettings
+import com.example.ebf.ui.settings.ThemeToggleButton
+import com.example.ebf.ui.theme.LocalDarkTheme
 import com.example.ebf.ui.theme.LocalReaderColors
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -74,6 +76,7 @@ fun ReaderScreen(
     settings: AppSettings,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
+    onToggleDark: () -> Unit,
 ) {
     val vm: ReaderViewModel = viewModel(factory = ReaderViewModel.factory(bookUri))
     val state by vm.state.collectAsStateWithLifecycle()
@@ -94,7 +97,7 @@ fun ReaderScreen(
                 },
                 modifier = Modifier.align(Alignment.Center),
             )
-            is ReaderState.Ready -> Reader(vm, s, settings, onBack, onOpenSettings)
+            is ReaderState.Ready -> Reader(vm, s, settings, onBack, onOpenSettings, onToggleDark)
         }
     }
 }
@@ -106,6 +109,7 @@ private fun Reader(
     settings: AppSettings,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
+    onToggleDark: () -> Unit,
 ) {
     val pageCount = ready.pageCount
     val pagerState = rememberPagerState(initialPage = ready.initialPage) { pageCount }
@@ -140,6 +144,7 @@ private fun Reader(
                 page = page,
                 pageCount = pageCount,
                 pageTurn = settings.pageTurn,
+                darkPages = LocalDarkTheme.current && settings.darkPages,
                 pageOffset = { (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction },
                 onTap = { x, width ->
                     when {
@@ -158,6 +163,7 @@ private fun Reader(
             modifier = Modifier.align(Alignment.TopCenter),
         ) {
             ReaderTopBar(title = ready.title, onBack = onBack) {
+                ThemeToggleButton(onToggle = onToggleDark)
                 IconButton(onClick = onOpenSettings) {
                     Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
                 }

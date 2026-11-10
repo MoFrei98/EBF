@@ -25,6 +25,14 @@
 
     <!-- Einstellungen -->
     <string name="settings">Einstellungen</string>
+    <string name="settings_theme">Design</string>
+    <string name="theme_system">Wie im System</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="dark_pages">PDF-Seiten im Dark Mode abdunkeln</string>
+    <string name="dark_pages_hint">Helle Schrift auf dunklem Papier, Bilder behalten ihre Farbtöne.</string>
+    <string name="switch_to_dark">Dunkles Design</string>
+    <string name="switch_to_light">Helles Design</string>
     <string name="settings_page_turn">Blättern</string>
     <string name="page_turn_curl">Umblättern wie im Buch</string>
     <string name="page_turn_slide">Schieben</string>

@@ -1,11 +1,15 @@
 package com.example.ebf.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+
+/** Helles oder dunkles Design. */
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 /** Wie die Seiten beim Blättern animiert werden. */
 enum class PageTurn {
@@ -17,20 +21,35 @@ enum class PageTurn {
 }
 
 data class AppSettings(
+    val theme: ThemeMode = ThemeMode.SYSTEM,
+    /** Im Dark Mode auch die PDF-Seiten dunkel darstellen. */
+    val darkPages: Boolean = true,
     val pageTurn: PageTurn = PageTurn.CURL,
 )
 
 class SettingsRepository(private val context: Context) {
 
+    private val themeKey = stringPreferencesKey("theme")
+    private val darkPagesKey = booleanPreferencesKey("dark_pages")
     private val pageTurnKey = stringPreferencesKey("page_turn")
 
     val settings: Flow<AppSettings> = context.ebfDataStore.data
         .map { prefs ->
             AppSettings(
+                theme = enumOrDefault(prefs[themeKey], ThemeMode.SYSTEM),
+                darkPages = prefs[darkPagesKey] ?: true,
                 pageTurn = enumOrDefault(prefs[pageTurnKey], PageTurn.CURL),
             )
         }
         .distinctUntilChanged()
+
+    suspend fun setTheme(value: ThemeMode) {
+        context.ebfDataStore.edit { it[themeKey] = value.name }
+    }
+
+    suspend fun setDarkPages(value: Boolean) {
+        context.ebfDataStore.edit { it[darkPagesKey] = value }
+    }
 
     suspend fun setPageTurn(value: PageTurn) {
         context.ebfDataStore.edit { it[pageTurnKey] = value.name }

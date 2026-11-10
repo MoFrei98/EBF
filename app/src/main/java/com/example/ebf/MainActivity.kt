@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -29,9 +30,12 @@ import com.example.ebf.ui.library.LibraryScreen
 import com.example.ebf.ui.library.LibraryViewModel
 import com.example.ebf.data.AppSettings
 import com.example.ebf.data.SettingsRepository
+import com.example.ebf.data.ThemeMode
+import com.example.ebf.ui.settings.ThemeToggleButton
 import com.example.ebf.ui.reader.ReaderScreen
 import com.example.ebf.ui.settings.SettingsDialog
 import com.example.ebf.ui.theme.EBFTheme
+import com.example.ebf.ui.theme.LocalDarkTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -47,7 +51,12 @@ class MainActivity : ComponentActivity() {
             val settings by settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
             // Kurz warten, bis die Einstellungen geladen sind, damit nichts flackert.
             val current = settings ?: return@setContent
-            EBFTheme {
+            val darkTheme = when (current.theme) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+            EBFTheme(darkTheme = darkTheme) {
                 EbfNavigation(libraryViewModel, current, settingsRepository)
             }
         }
@@ -82,6 +91,10 @@ private fun EbfNavigation(
     val scope = rememberCoroutineScope()
     var showSettings by rememberSaveable { mutableStateOf(false) }
     val openSettings = { showSettings = true }
+    val darkTheme = LocalDarkTheme.current
+    val toggleDark: () -> Unit = {
+        scope.launch { settingsRepository.setTheme(if (darkTheme) ThemeMode.LIGHT else ThemeMode.DARK) }
+    }
 
     LaunchedEffect(libraryViewModel) {
         libraryViewModel.openRequests.collect { bookUri ->
@@ -98,6 +111,7 @@ private fun EbfNavigation(
                 vm = libraryViewModel,
                 onOpenBook = { navController.navigate(Routes.reader(it)) },
                 topBarActions = {
+                    ThemeToggleButton(onToggle = toggleDark)
                     IconButton(onClick = openSettings) {
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
                     }
@@ -114,6 +128,7 @@ private fun EbfNavigation(
                 settings = settings,
                 onBack = { navController.popBackStack() },
                 onOpenSettings = openSettings,
+                onToggleDark = toggleDark,
             )
         }
     }
@@ -121,6 +136,8 @@ private fun EbfNavigation(
     if (showSettings) {
         SettingsDialog(
             settings = settings,
+            onThemeChange = { scope.launch { settingsRepository.setTheme(it) } },
+            onDarkPagesChange = { scope.launch { settingsRepository.setDarkPages(it) } },
             onPageTurnChange = { scope.launch { settingsRepository.setPageTurn(it) } },
             onDismiss = { showSettings = false },
         )

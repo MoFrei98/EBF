@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.ebf.R
 import com.example.ebf.data.PageTurn
+import com.example.ebf.ui.theme.DarkReaderColors
+import com.example.ebf.ui.theme.LightReaderColors
 
 private val PageHPadding = 12.dp
 private val PageVPadding = 16.dp
@@ -34,6 +37,7 @@ private val PageVPadding = 16.dp
  *
  * @param pageOffset Abstand dieser Seite zur aktuell sichtbaren Position im Pager:
  *   0 = sichtbar, > 0 = liegt links (schon umgeblättert), < 0 = liegt rechts (kommt noch).
+ * @param darkPages PDF-Seite dunkel darstellen (Dark Mode).
  * @param onTap Tippen mit x-Position und Breite der Fläche (für die Blätter-Zonen).
  */
 @Composable
@@ -42,12 +46,17 @@ internal fun PageView(
     page: Int,
     pageCount: Int,
     pageTurn: PageTurn,
+    darkPages: Boolean,
     pageOffset: () -> Float,
     onTap: (x: Float, width: Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val currentOnTap by rememberUpdatedState(onTap)
     val curl = pageTurn == PageTurn.CURL
+    val paperColor = if (darkPages) DarkReaderColors.paper else LightReaderColors.paper
+    val colorFilter = remember(darkPages) {
+        if (darkPages) PageColors.night(DarkReaderColors.paper, DarkReaderColors.ink) else PageColors.day
+    }
 
     BoxWithConstraints(
         modifier
@@ -74,6 +83,8 @@ internal fun PageView(
         }
 
         Paper(
+            paperColor = paperColor,
+            darkPaper = darkPages,
             readFraction = if (pageCount > 1) page / (pageCount - 1f) else 0f,
             turnShadow = {
                 // Die angehobene Seite wirft einen Schatten auf die Seite darunter.
@@ -92,6 +103,7 @@ internal fun PageView(
                     bitmap = it,
                     contentDescription = stringResource(R.string.page_description, page + 1),
                     contentScale = ContentScale.FillBounds,
+                    colorFilter = colorFilter,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
