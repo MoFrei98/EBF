@@ -1,0 +1,81 @@
+package com.example.ebf.ui.settings
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import com.example.ebf.R
+import com.example.ebf.data.AppSettings
+import com.example.ebf.data.PageTurn
+
+@Composable
+fun SettingsDialog(
+    settings: AppSettings,
+    onPageTurnChange: (PageTurn) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings)) },
+        text = {
+            Column {
+                SectionTitle(stringResource(R.string.settings_page_turn))
+                Column(Modifier.selectableGroup()) {
+                    RadioRow(
+                        label = stringResource(R.string.page_turn_curl),
+                        selected = settings.pageTurn == PageTurn.CURL,
+                        onClick = { onPageTurnChange(PageTurn.CURL) },
+                    )
+                    RadioRow(
+                        label = stringResource(R.string.page_turn_slide),
+                        selected = settings.pageTurn == PageTurn.SLIDE,
+                        onClick = { onPageTurnChange(PageTurn.SLIDE) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
+        },
+    )
+}
+
+@Composable
+internal fun SectionTitle(text: String) {
+    Spacer(Modifier.height(8.dp))
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(bottom = 4.dp),
+    )
+}
+
+@Composable
+internal fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
+            .padding(vertical = 2.dp),
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
+    }
+}

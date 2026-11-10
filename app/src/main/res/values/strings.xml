@@ -23,6 +23,13 @@
     <string name="page_description">Seite %1$d</string>
     <string name="remove_from_library">Aus Bibliothek entfernen</string>
 
+    <!-- Einstellungen -->
+    <string name="settings">Einstellungen</string>
+    <string name="settings_page_turn">Blättern</string>
+    <string name="page_turn_curl">Umblättern wie im Buch</string>
+    <string name="page_turn_slide">Schieben</string>
+    <string name="done">Fertig</string>
+
     <!-- Fehler -->
     <string name="error_open">Die PDF konnte nicht geöffnet werden. Ist sie beschädigt oder passwortgeschützt?</string>
     <string name="error_missing">Die Datei ist nicht mehr erreichbar. Wurde sie verschoben oder gelöscht?</string>

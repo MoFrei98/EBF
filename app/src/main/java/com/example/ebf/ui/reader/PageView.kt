@@ -2,9 +2,7 @@ package com.example.ebf.ui.reader
 
 import android.util.Size
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
@@ -17,15 +15,16 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.ebf.R
-import com.example.ebf.ui.theme.LocalReaderColors
+import com.example.ebf.data.PageTurn
 
 private val PageHPadding = 12.dp
 private val PageVPadding = 16.dp
@@ -33,19 +32,27 @@ private val PageVPadding = 16.dp
 /**
  * Eine einzelne PDF-Seite im Reader.
  *
+ * @param pageOffset Abstand dieser Seite zur aktuell sichtbaren Position im Pager:
+ *   0 = sichtbar, > 0 = liegt links (schon umgeblättert), < 0 = liegt rechts (kommt noch).
  * @param onTap Tippen mit x-Position und Breite der Fläche (für die Blätter-Zonen).
  */
 @Composable
 internal fun PageView(
     vm: ReaderViewModel,
     page: Int,
+    pageCount: Int,
+    pageTurn: PageTurn,
+    pageOffset: () -> Float,
     onTap: (x: Float, width: Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val currentOnTap by rememberUpdatedState(onTap)
+    val curl = pageTurn == PageTurn.CURL
+
     BoxWithConstraints(
         modifier
             .fillMaxSize()
+            .then(if (curl) Modifier.curlTransform(page, pageOffset) else Modifier)
             .pointerInput(Unit) {
                 detectTapGestures { offset -> currentOnTap(offset.x, size.width.toFloat()) }
             }
@@ -66,11 +73,19 @@ internal fun PageView(
             value = vm.renderPage(page, widthPx)
         }
 
-        Box(
-            Modifier
-                .size(width, height)
-                .shadow(4.dp)
-                .background(LocalReaderColors.current.paper)
+        Paper(
+            readFraction = if (pageCount > 1) page / (pageCount - 1f) else 0f,
+            turnShadow = {
+                // Die angehobene Seite wirft einen Schatten auf die Seite darunter.
+                val offset = pageOffset()
+                if (curl && offset > 0f && offset < 1f) (offset * 10f).coerceAtMost(1f) * (1f - offset) else 0f
+            },
+            dim = {
+                // Die Seite darunter ist dunkler, solange sie noch bedeckt ist.
+                val offset = pageOffset()
+                if (curl && offset < 0f && offset > -1f) -offset else 0f
+            },
+            modifier = Modifier.size(width, height),
         ) {
             bitmap?.let {
                 Image(
@@ -83,3 +98,21 @@ internal fun PageView(
         }
     }
 }
+
+/**
+ * Umblätter-Effekt: Die obere Seite gleitet zur Seite, die nächste Seite bleibt
+ * liegen und wird darunter freigegeben. Seiten mit kleinerer Nummer liegen oben.
+ */
+private fun Modifier.curlTransform(page: Int, pageOffset: () -> Float): Modifier =
+    zIndex(-page.toFloat()).graphicsLayer {
+        val offset = pageOffset()
+        if (offset < 0f) {
+            // Natürliche Position wäre rechts daneben, wir halten die Seite an Ort und Stelle.
+            translationX = offset * size.width
+            // Nur die direkt folgende Seite liegt sichtbar darunter.
+            alpha = if (offset <= -1f) 0f else 1f
+        } else {
+            translationX = 0f
+            alpha = 1f
+        }
+    }

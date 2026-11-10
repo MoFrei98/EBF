@@ -3,6 +3,7 @@ package com.example.ebf
 import android.app.Application
 import android.content.Context
 import com.example.ebf.data.LibraryRepository
+import com.example.ebf.data.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,6 +13,7 @@ class EbfApp : Application() {
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     val library by lazy { LibraryRepository(this) }
+    val settings by lazy { SettingsRepository(this) }
 }
 
 val Context.ebfApp: EbfApp get() = applicationContext as EbfApp

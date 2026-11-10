@@ -27,6 +27,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,12 +63,18 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ebf.R
+import com.example.ebf.data.AppSettings
 import com.example.ebf.ui.theme.LocalReaderColors
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
-fun ReaderScreen(bookUri: String, onBack: () -> Unit) {
+fun ReaderScreen(
+    bookUri: String,
+    settings: AppSettings,
+    onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
     val vm: ReaderViewModel = viewModel(factory = ReaderViewModel.factory(bookUri))
     val state by vm.state.collectAsStateWithLifecycle()
 
@@ -87,13 +94,19 @@ fun ReaderScreen(bookUri: String, onBack: () -> Unit) {
                 },
                 modifier = Modifier.align(Alignment.Center),
             )
-            is ReaderState.Ready -> Reader(vm, s, onBack)
+            is ReaderState.Ready -> Reader(vm, s, settings, onBack, onOpenSettings)
         }
     }
 }
 
 @Composable
-private fun Reader(vm: ReaderViewModel, ready: ReaderState.Ready, onBack: () -> Unit) {
+private fun Reader(
+    vm: ReaderViewModel,
+    ready: ReaderState.Ready,
+    settings: AppSettings,
+    onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
     val pageCount = ready.pageCount
     val pagerState = rememberPagerState(initialPage = ready.initialPage) { pageCount }
     val scope = rememberCoroutineScope()
@@ -125,6 +138,9 @@ private fun Reader(vm: ReaderViewModel, ready: ReaderState.Ready, onBack: () -> 
             PageView(
                 vm = vm,
                 page = page,
+                pageCount = pageCount,
+                pageTurn = settings.pageTurn,
+                pageOffset = { (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction },
                 onTap = { x, width ->
                     when {
                         x < width * 0.25f -> goTo(pagerState.currentPage - 1)
@@ -141,7 +157,11 @@ private fun Reader(vm: ReaderViewModel, ready: ReaderState.Ready, onBack: () -> 
             exit = slideOutVertically { -it } + fadeOut(),
             modifier = Modifier.align(Alignment.TopCenter),
         ) {
-            ReaderTopBar(title = ready.title, onBack = onBack)
+            ReaderTopBar(title = ready.title, onBack = onBack) {
+                IconButton(onClick = onOpenSettings) {
+                    Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
+                }
+            }
         }
 
         AnimatedVisibility(

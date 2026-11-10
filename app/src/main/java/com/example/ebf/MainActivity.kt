@@ -7,8 +7,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,8 +27,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ebf.ui.library.LibraryScreen
 import com.example.ebf.ui.library.LibraryViewModel
+import com.example.ebf.data.AppSettings
+import com.example.ebf.data.SettingsRepository
 import com.example.ebf.ui.reader.ReaderScreen
+import com.example.ebf.ui.settings.SettingsDialog
 import com.example.ebf.ui.theme.EBFTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -27,9 +42,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         if (savedInstanceState == null) handleIntent(intent)
+        val settingsRepository = ebfApp.settings
         setContent {
+            val settings by settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
+            // Kurz warten, bis die Einstellungen geladen sind, damit nichts flackert.
+            val current = settings ?: return@setContent
             EBFTheme {
-                EbfNavigation(libraryViewModel)
+                EbfNavigation(libraryViewModel, current, settingsRepository)
             }
         }
     }
@@ -54,8 +73,15 @@ private object Routes {
 }
 
 @Composable
-private fun EbfNavigation(libraryViewModel: LibraryViewModel) {
+private fun EbfNavigation(
+    libraryViewModel: LibraryViewModel,
+    settings: AppSettings,
+    settingsRepository: SettingsRepository,
+) {
     val navController = rememberNavController()
+    val scope = rememberCoroutineScope()
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+    val openSettings = { showSettings = true }
 
     LaunchedEffect(libraryViewModel) {
         libraryViewModel.openRequests.collect { bookUri ->
@@ -71,6 +97,11 @@ private fun EbfNavigation(libraryViewModel: LibraryViewModel) {
             LibraryScreen(
                 vm = libraryViewModel,
                 onOpenBook = { navController.navigate(Routes.reader(it)) },
+                topBarActions = {
+                    IconButton(onClick = openSettings) {
+                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
+                    }
+                },
             )
         }
         composable(
@@ -78,7 +109,20 @@ private fun EbfNavigation(libraryViewModel: LibraryViewModel) {
             arguments = listOf(navArgument("uri") { type = NavType.StringType }),
         ) { entry ->
             val bookUri = entry.arguments?.getString("uri").orEmpty()
-            ReaderScreen(bookUri = bookUri, onBack = { navController.popBackStack() })
+            ReaderScreen(
+                bookUri = bookUri,
+                settings = settings,
+                onBack = { navController.popBackStack() },
+                onOpenSettings = openSettings,
+            )
         }
+    }
+
+    if (showSettings) {
+        SettingsDialog(
+            settings = settings,
+            onPageTurnChange = { scope.launch { settingsRepository.setPageTurn(it) } },
+            onDismiss = { showSettings = false },
+        )
     }
 }
