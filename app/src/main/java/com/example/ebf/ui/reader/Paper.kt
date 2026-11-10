@@ -27,7 +27,6 @@ private const val MAX_SHEETS = 3
  * - Schatten unter dem Blatt
  * - Blattkanten links (schon gelesen) und rechts (noch zu lesen), je nach Fortschritt
  * - Schattierung am Bundsteg (linker Rand), wie bei einem aufgeschlagenen Buch
- * - [turnShadow]: Schatten, den die Seite beim Umblättern auf die Seite darunter wirft (0..1)
  * - [dim]: Abdunkeln, solange die Seite noch von der umgeblätterten Seite bedeckt ist (0..1)
  */
 @Composable
@@ -35,7 +34,6 @@ internal fun Paper(
     paperColor: Color,
     darkPaper: Boolean,
     readFraction: Float,
-    turnShadow: () -> Float,
     dim: () -> Float,
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
@@ -49,8 +47,6 @@ internal fun Paper(
         modifier
             .drawBehind {
                 drawSheetEdges(colors, leftSheets, rightSheets)
-                val shadow = turnShadow()
-                if (shadow > 0f) drawTurnShadow(colors.shade, shadow)
             }
             .shadow(3.dp, RectangleShape)
             .background(paperColor)
@@ -83,20 +79,6 @@ private fun DrawScope.drawSheetEdges(colors: ReaderColors, left: Int, right: Int
     // Von außen nach innen zeichnen, damit nähere Blätter die äußeren überdecken.
     for (i in right downTo 1) sheet(i, direction = 1f)
     for (i in left downTo 1) sheet(i, direction = -1f)
-}
-
-private fun DrawScope.drawTurnShadow(shade: Color, strength: Float) {
-    val width = 28.dp.toPx()
-    drawRect(
-        brush = Brush.horizontalGradient(
-            0f to shade.copy(alpha = 0.30f * strength),
-            1f to Color.Transparent,
-            startX = size.width,
-            endX = size.width + width,
-        ),
-        topLeft = Offset(size.width, 0f),
-        size = Size(width, size.height),
-    )
 }
 
 private fun DrawScope.drawSpineShade(shade: Color, alpha: Float) {

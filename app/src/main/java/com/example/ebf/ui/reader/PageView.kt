@@ -1,6 +1,7 @@
 package com.example.ebf.ui.reader
 
 import android.util.Size
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -34,6 +36,7 @@ import com.example.ebf.data.ZoomMode
 import com.example.ebf.pdf.Crop
 import com.example.ebf.ui.theme.DarkReaderColors
 import com.example.ebf.ui.theme.LightReaderColors
+import com.example.ebf.ui.theme.LocalReaderColors
 
 private val PageHPadding = 12.dp
 private val PageVPadding = 16.dp
@@ -65,6 +68,11 @@ internal fun PageView(
     val curl = pageTurn == PageTurn.CURL
     val paperColor = if (darkPages) DarkReaderColors.paper else LightReaderColors.paper
     val nightFilter = remember { PageColors.night(DarkReaderColors.paper, DarkReaderColors.ink) }
+    val shadowColor = LocalReaderColors.current.shade
+    // Nur während die Seite gerade umgeblättert wird, zeichnen wir sie als gebogenes 3D-Blatt.
+    val turning by remember(curl) {
+        derivedStateOf { curl && pageOffset().let { it > 0f && it < 1f } }
+    }
 
     BoxWithConstraints(
         modifier
@@ -105,15 +113,20 @@ internal fun PageView(
         }
 
         val paper: @Composable () -> Unit = {
-            Paper(
+            if (turning) {
+                Canvas(Modifier.size(width, height)) {
+                    drawCurledPage(
+                        progress = pageOffset(),
+                        bitmap = bitmap.takeIf { imagePage != null },
+                        colorFilter = colorFilter,
+                        paperColor = paperColor,
+                        shadowColor = shadowColor,
+                    )
+                }
+            } else Paper(
                 paperColor = paperColor,
                 darkPaper = darkPages,
                 readFraction = if (pageCount > 1) page / (pageCount - 1f) else 0f,
-                turnShadow = {
-                    // Die angehobene Seite wirft einen Schatten auf die Seite darunter.
-                    val offset = pageOffset()
-                    if (curl && offset > 0f && offset < 1f) (offset * 10f).coerceAtMost(1f) * (1f - offset) else 0f
-                },
                 dim = {
                     // Die Seite darunter ist dunkler, solange sie noch bedeckt ist.
                     val offset = pageOffset()
@@ -159,19 +172,15 @@ private fun <T : Any> rememberResult(vararg keys: Any?, load: suspend () -> T): 
 }
 
 /**
- * Umblätter-Effekt: Die obere Seite gleitet zur Seite, die nächste Seite bleibt
- * liegen und wird darunter freigegeben. Seiten mit kleinerer Nummer liegen oben.
+ * Buch-Modus: Alle Seiten bleiben an ihrem Platz liegen, statt mit dem Pager zur Seite
+ * zu gleiten. Seiten mit kleinerer Nummer liegen oben. Die oberste Seite wird während
+ * des Wischens als gebogenes 3D-Blatt gezeichnet (siehe [drawCurledPage]).
  */
 private fun Modifier.curlTransform(page: Int, pageOffset: () -> Float): Modifier =
     zIndex(-page.toFloat()).graphicsLayer {
         val offset = pageOffset()
-        if (offset < 0f) {
-            // Natürliche Position wäre rechts daneben, wir halten die Seite an Ort und Stelle.
-            translationX = offset * size.width
-            // Nur die direkt folgende Seite liegt sichtbar darunter.
-            alpha = if (offset <= -1f) 0f else 1f
-        } else {
-            translationX = 0f
-            alpha = 1f
-        }
+        // Natürliche Position wäre um offset Seitenbreiten verschoben – das heben wir auf.
+        translationX = offset * size.width
+        // Nur die beiden beteiligten Seiten sind sichtbar.
+        alpha = if (offset <= -1f || offset >= 1f) 0f else 1f
     }

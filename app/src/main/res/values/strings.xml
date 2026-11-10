@@ -41,7 +41,7 @@
     <string name="switch_to_dark">Dunkles Design</string>
     <string name="switch_to_light">Helles Design</string>
     <string name="settings_page_turn">Blättern</string>
-    <string name="page_turn_curl">Umblättern wie im Buch</string>
+    <string name="page_turn_curl">Umblättern wie im Buch (3D)</string>
     <string name="page_turn_slide">Schieben</string>
     <string name="done">Fertig</string>
 
