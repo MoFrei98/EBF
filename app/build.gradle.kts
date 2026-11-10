@@ -24,8 +24,12 @@ android {
     buildTypes {
         release {
             optimization {
-                enable = false
+                enable = true
             }
+            // Die App wird nur privat per APK verteilt (siehe README). Der lokale
+            // Debug-Schlüssel reicht dafür und sorgt dafür, dass Updates aus Android
+            // Studio und aus GitHub Releases sich gegenseitig überschreiben können.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
