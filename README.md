@@ -1,141 +1,157 @@
-# EBF – E-Book-Reader für PDFs
+<p align="center">
+  <img src="docs/icon.png" width="112" alt="EBF app icon">
+</p>
 
-EBF ist eine Android-App, mit der du PDFs wie ein Buch liest: Seite für Seite horizontal blättern, mit Papier-Optik, festen Zoom-Formaten und einem Dark Mode, der auch die Seiten dunkel macht.
+<h1 align="center">EBF – a book-style PDF reader for Android</h1>
 
-| Bibliothek | Lesen | Umblättern |
+<p align="center">
+  Read PDFs like a book: turn real-looking pages, sort your books into folders, read at night in dark mode – fully offline.
+</p>
+
+> [!WARNING]
+> **This project is vibe coded.** The app, its code, tests, issues and this README were written almost entirely by an AI assistant (Claude) from short prompts, with only light human review. It works for its author's own use, but it has not been audited, tested on many devices or hardened for production. Use it at your own risk, keep backups of your PDFs, and read the code before relying on it.
+
+| Library with folders | Reading | 3D page turn |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/bibliothek.png" width="220" alt="Bibliothek"> | <img src="docs/screenshots/lesen.png" width="220" alt="Lesen"> | <img src="docs/screenshots/umblaettern.png" width="220" alt="Umblättern"> |
-| **Zoom-Formate** | **Ränder entfernen** | **Dark Mode** |
-| <img src="docs/screenshots/zoom.png" width="220" alt="Zoom-Dropdown"> | <img src="docs/screenshots/raender-entfernen.png" width="220" alt="Ränder entfernen"> | <img src="docs/screenshots/dark-mode.png" width="220" alt="Dark Mode"> |
+| <img src="docs/screenshots/library.png" width="220" alt="Library with folders"> | <img src="docs/screenshots/reading.png" width="220" alt="Reading a page"> | <img src="docs/screenshots/page-turn.png" width="220" alt="3D page turn"> |
+| **Dark mode** | **Settings** | |
+| <img src="docs/screenshots/dark-mode.png" width="220" alt="Dark mode"> | <img src="docs/screenshots/settings.png" width="220" alt="Settings"> | |
 
-## Funktionen
+The app's interface is in German. The screenshots use a sample book made for this project.
 
-- **Bibliothek** mit Cover, Titel und Lesefortschritt. Die App merkt sich die zuletzt gelesene Seite.
-- **Horizontales Blättern** per Wischen oder Tippen auf den Bildschirmrand.
-- **Buch-Optik**: Die Seite liegt wie Papier auf dem Tisch. Ein Schatten am Bundsteg und Blattkanten links und rechts zeigen, wie weit du im Buch bist.
-- **Umblätter-Animation**: Die obere Seite gleitet weg und gibt die nächste frei.
-- **Zoom über ein Dropdown** mit festen Formaten statt Pinch-Zoom. Links und rechts wird nie etwas abgeschnitten.
-- **Dark Mode** für App und Seiten: helle Schrift auf dunklem Papier. Bilder wie Cover bleiben normal.
-- **„Öffnen mit → EBF“** aus dem Dateimanager, den Downloads oder anderen Apps.
-- Läuft komplett offline. Keine Berechtigungen, keine Werbung, kein Tracking.
+## Features
 
-## Installation auf dem Handy
+- **Library with real folders.** Pick one folder on your phone (for example `Documents/EBF`) and EBF mirrors it: subfolders become folders in the app, PDFs inside appear automatically, and sorting a book into a folder moves the file on the device. Folder tiles show the covers of the books inside.
+- **Book pages.** Pages turn in 3D. The page bends from where you grab it: grab near the top and the top corner lifts first, near the bottom and the bottom corner does, then it straightens out as it flips. Prefer something simpler? Switch to **Slideshow**.
+- **Paper look.** Each page lies on the table like a sheet of paper, with a soft shadow, shading at the spine and stacked page edges that show how far you are in the book.
+- **Page size that never cuts anything off.** Choose **whole page** or **remove margins** (white borders are trimmed so the text gets bigger, all pages are zoomed consistently). Content on the left and right is never cut off; tall pages scroll vertically. No pinch zoom.
+- **Dark mode for app and pages.** Pages are shown as light text on dark paper. Colors keep their hue and picture pages such as covers are only dimmed, not inverted.
+- **Remembers where you are.** Every book reopens on the page you left it.
+- **"Open with → EBF"** from your file manager, downloads or messengers.
+- **Fully offline.** See [Privacy](#privacy-and-offline-use).
 
-Voraussetzung: Android 8.0 oder neuer.
+## Install on your phone
 
-### Am einfachsten: APK aus GitHub Releases
+You need Android 8.0 or newer.
 
-1. Öffne auf dem Handy den Browser und melde dich bei GitHub an. Das Repo ist privat, deshalb ist die Anmeldung nötig.
-2. Rufe **https://github.com/MoFrei98/EBF/releases/latest** auf.
-3. Tippe unter **Assets** auf **`EBF-<Version>.apk`**. Der Download startet.
-4. Öffne die heruntergeladene Datei, zum Beispiel über die Benachrichtigung oder die App **Dateien → Downloads**.
-5. Beim ersten Mal fragt Android, ob der Browser Apps installieren darf. Tippe auf **Einstellungen → Aus dieser Quelle zulassen**, dann zurück und auf **Installieren**.
-6. Falls Google Play Protect warnt („Unbekannte App“), tippe auf **Weitere Details → Trotzdem installieren**. Die Warnung kommt, weil die App nicht aus dem Play Store stammt.
+### Easiest: APK from GitHub Releases
 
-EBF erscheint danach mit dem Buch-Symbol in der App-Übersicht.
+1. On your phone, open a browser and sign in to GitHub. The repository is private, so you need to be signed in.
+2. Go to **https://github.com/MoFrei98/EBF/releases/latest**.
+3. Under **Assets**, tap **`EBF-<version>.apk`** to download it.
+4. Open the downloaded file, for example from the download notification or **Files → Downloads**.
+5. The first time, Android asks whether your browser may install apps. Tap **Settings → Allow from this source**, go back and tap **Install**.
+6. If Google Play Protect warns about an unknown app, tap **More details → Install anyway**. The warning appears because the app does not come from the Play Store.
 
-**Ohne Anmeldung am Handy:** Lade die APK am PC herunter und schicke sie dir per USB-Kabel, Cloud-Speicher oder E-Mail aufs Handy. Öffne sie dort und mach ab Schritt 4 weiter.
+**Without signing in on the phone:** download the APK on your computer and copy it to the phone with a USB cable (it shows up as a drive in Windows Explorer), then open it on the phone and continue with step 4.
 
-### Alternative: direkt aus Android Studio
+### Alternative: straight from Android Studio
 
-1. Aktiviere auf dem Handy die Entwickleroptionen: **Einstellungen → Über das Telefon** → siebenmal auf **Build-Nummer** tippen.
-2. Schalte unter **Entwickleroptionen** das **USB-Debugging** ein und verbinde das Handy per USB.
-3. Öffne das Projekt in Android Studio, wähle oben dein Handy aus und klicke auf **Run ▶**.
+1. Enable developer options on the phone: **Settings → About phone** → tap **Build number** seven times.
+2. Turn on **USB debugging** in the developer options and connect the phone via USB.
+3. Open the project in Android Studio, select your phone at the top and click **Run ▶**.
 
-### Updates
+### Updating
 
-Installiere die neue APK einfach über die alte. Bibliothek, Lesefortschritt und Einstellungen bleiben erhalten.
+Install the new APK over the old one. Your library, reading progress and settings are kept.
 
-## Bedienung
+## How to use it
 
-### Bibliothek
+### First start: choose a library folder
 
-| Aktion | So geht's |
+On the empty library screen tap **Bibliotheksordner wählen** (choose library folder). The system folder picker opens in `Documents`. Tap the folder icon at the top to create a folder such as `EBF`, open it, tap **Use this folder** and allow access.
+
+Everything already in that folder shows up in the app. You can also put PDFs and subfolders there from your computer later; pull down on the library to refresh.
+
+You can skip this and just add PDFs. Folders become available once a library folder is set, and you can change it any time in the settings.
+
+### Library
+
+| Action | How |
 | --- | --- |
-| PDF hinzufügen | **PDF hinzufügen** antippen und die Datei im Dateidialog auswählen. Das Buch öffnet sich sofort. |
-| PDF aus einer anderen App öffnen | Im Dateimanager, in den Downloads oder einem Messenger die PDF antippen und **EBF** wählen. |
-| Buch lesen | Auf das Cover tippen. Es geht dort weiter, wo du aufgehört hast. |
-| Umbenennen / Entfernen | Auf **⋮** neben dem Titel tippen oder das Cover lange drücken. Beim Entfernen bleibt die PDF-Datei auf dem Gerät erhalten. |
+| Add a PDF | Tap **PDF hinzufügen** and pick a file. It lands in the folder you have open and the book opens right away. |
+| Open a PDF from another app | Tap the PDF in your file manager, downloads or a messenger and choose **EBF**. |
+| Create a folder | **⋮** at the top right → **Neuer Ordner** |
+| Sort a book into a folder | **⋮** next to the book (or long-press its cover) → **In Ordner verschieben**. You can also create a new folder from there. |
+| Rename or delete a folder | **⋮** next to the folder. Only empty folders can be deleted, so nothing gets lost by accident. |
+| Navigate | Tap a folder to open it; the back arrow or back gesture goes up one level. |
+| Sort | **⋮** → *Zuletzt gelesen* (recently read) or *Titel A–Z* |
+| Refresh | Pull down, or **⋮** → **Aktualisieren** |
+| Remove / delete a book | **⋮** next to the book. Books outside the library folder are only removed from the app. Books inside the library folder are deleted from the device after a confirmation. |
 
-Die zuletzt gelesenen Bücher stehen oben. Öffnest du dieselbe PDF über verschiedene Wege, landet sie trotzdem nur einmal in der Bibliothek.
+**About moving files:** when you sort a book into a folder, EBF *moves* the PDF into the library folder. If Android doesn't allow deleting the original (for example for some files opened from other apps), EBF copies it instead and tells you.
 
-### Lesen
+### Reading
 
-| Geste | Wirkung |
+| Gesture | Effect |
 | --- | --- |
-| Nach links / rechts wischen | Eine Seite vor / zurück |
-| Rechtes Viertel des Bildschirms antippen | Nächste Seite |
-| Linkes Viertel antippen | Vorherige Seite |
-| Mitte antippen | Leisten ein- und ausblenden |
-| Schieberegler unten | Schnell zu einer Seite springen |
-| Nach oben / unten wischen | Scrollen, wenn eine Seite höher als der Bildschirm ist |
+| Swipe left / right | Next / previous page |
+| Tap the right quarter of the screen | Next page |
+| Tap the left quarter | Previous page |
+| Tap the middle | Show or hide the toolbars |
+| Slider at the bottom | Jump to any page |
+| Swipe up / down | Scroll when a page is taller than the screen |
 
-Beim Weiterblättern blenden sich die Leisten automatisch aus, damit du im Vollbild liest.
+The toolbars hide automatically when you turn a page, so you read in full screen. The sun/moon button at the top switches between light and dark mode.
 
-### Zoom
+### Settings (gear icon)
 
-Den Zoom wählst du unten links im Dropdown. Pinch-Zoom gibt es bewusst nicht, und links und rechts wird in keinem Format etwas abgeschnitten.
-
-| Format | Was passiert |
+| Setting | Options |
 | --- | --- |
-| **Ganze Seite** | Die komplette Seite passt auf den Bildschirm. |
-| **Seitenbreite** | Die Seite füllt die Breite. Ist sie höher als der Bildschirm, scrollst du nach unten. Praktisch im Querformat. |
-| **Ränder entfernen** | Die weißen Ränder werden automatisch abgeschnitten, so wird die Schrift größer. Vom Inhalt fehlt nie etwas, und alle Seiten eines Buchs werden gleich stark vergrößert. |
+| Library folder | The folder on your device that EBF mirrors. Tap **Ändern** to choose another one. |
+| Design | **System**, **Hell** (light) or **Dunkel** (dark). In dark mode the pages are always darkened. |
+| Page size | **Ganze Seite** (whole page) or **Ränder entfernen** (remove margins, larger text) |
+| Page turning | **Buchseiten** (3D book pages) or **Slideshow** (pages simply slide) |
 
-Das gewählte Format wird pro Buch gespeichert.
+## Privacy and offline use
 
-### Dark Mode
+EBF works completely offline and never sends data anywhere:
 
-- Mit dem **Mond-/Sonnen-Symbol** oben rechts schaltest du zwischen hell und dunkel um, in der Bibliothek und im Reader.
-- Im Dark Mode werden auch die PDF-Seiten dunkel: helle Schrift auf dunklem Papier. Farben behalten ihren Farbton.
-- Seiten, die überwiegend aus Bildern bestehen (z. B. Cover), werden nicht invertiert, sondern nur leicht abgedunkelt.
+- The app has **no internet permission**. Android won't let it open any network connection.
+- It contains no analytics, ads, crash reporting or other third-party services. All dependencies are AndroidX libraries.
+- Android's automatic cloud backup is turned off for the app, so your library list doesn't leave the device either.
+- It only accesses the PDFs you pick and the library folder you choose, through Android's system file pickers. It requests no storage permission.
 
-### Einstellungen (Zahnrad)
+This was checked against the final release APK and tested in airplane mode.
 
-| Einstellung | Optionen |
-| --- | --- |
-| Design | Wie im System, Hell oder Dunkel |
-| PDF-Seiten im Dark Mode abdunkeln | An: dunkle Seiten. Aus: Seiten bleiben weiß, nur die App ist dunkel. |
-| Blättern | **Umblättern wie im Buch** oder einfaches **Schieben** |
+## For developers
 
-## Für Entwickler
+**Stack:** Kotlin, Jetpack Compose (Material 3), Android `PdfRenderer`, Storage Access Framework, DataStore, Navigation Compose. No dependencies outside AndroidX.
 
-**Technik:** Kotlin, Jetpack Compose (Material 3), Android `PdfRenderer`, DataStore, Navigation Compose. Es gibt keine Abhängigkeiten außerhalb von AndroidX.
+### Build
 
-### Bauen
-
-Öffne das Projekt in Android Studio. Gradle nutzt JDK 21. In der Kommandozeile:
+Open the project in Android Studio. Gradle runs on JDK 21. From the command line:
 
 ```bash
-./gradlew assembleDebug        # Debug-APK
-./gradlew testDebugUnitTest    # Unit-Tests
-./gradlew assembleRelease      # Release-APK: app/build/outputs/apk/release/app-release.apk
+./gradlew assembleDebug        # debug APK
+./gradlew testDebugUnitTest    # unit tests
+./gradlew assembleRelease      # release APK: app/build/outputs/apk/release/app-release.apk
 ```
 
-Die Release-APK wird mit dem lokalen Debug-Schlüssel von Android Studio signiert (`~/.android/debug.keystore`). Das reicht für die private Verteilung und hat einen Vorteil: Builds aus Android Studio und aus GitHub Releases lassen sich gegenseitig drüberinstallieren. Baust du auf einem anderen PC, gibt es dort einen anderen Schlüssel. Dann musst du die App einmal deinstallieren, bevor die neue Version installiert werden kann.
+The release APK is signed with Android Studio's local debug key (`~/.android/debug.keystore`). That is enough for private sideloading and means builds from Android Studio and from GitHub Releases can be installed over each other. If you build on another computer, the key differs; uninstall the app once before installing that build.
 
-### Neue Version veröffentlichen
+### Publishing a new version
 
-1. In `app/build.gradle.kts` `versionCode` um 1 erhöhen und `versionName` anpassen.
-2. `./gradlew assembleRelease`
-3. APK umbenennen und als Release hochladen:
+1. In `app/build.gradle.kts`, increase `versionCode` by 1 and update `versionName`.
+2. Run `./gradlew assembleRelease`.
+3. Rename the APK and attach it to a release:
 
 ```bash
-cp app/build/outputs/apk/release/app-release.apk EBF-1.1.apk
-gh release create v1.1 EBF-1.1.apk --title "EBF 1.1" --notes "Was ist neu …"
+cp app/build/outputs/apk/release/app-release.apk EBF-1.2.apk
+gh release create v1.2 EBF-1.2.apk --title "EBF 1.2" --notes "What's new …"
 ```
 
-### Projektstruktur
+### Project layout
 
 ```
 app/src/main/java/com/example/ebf/
-├── MainActivity.kt          Navigation, "Öffnen mit"
-├── EbfApp.kt                Application, Repositories
-├── data/                    Bibliothek (Book, LibraryRepository) und Einstellungen
-├── pdf/                     PdfDocument (Rendering), Crop (Ränder erkennen)
+├── MainActivity.kt          navigation, "Open with", folder picker
+├── EbfApp.kt                application, repositories
+├── data/                    books, library folder sync (LibraryRepository, LibraryTree), settings
+├── pdf/                     PdfDocument (rendering), Crop (margin detection)
 └── ui/
-    ├── library/             Bibliothek
-    ├── reader/              Reader, Seite, Papier-Optik, Dark-Mode-Farbfilter
-    ├── settings/            Einstellungsdialog, Dark-Mode-Umschalter
-    └── theme/               Farben und Theme
+    ├── library/             library, folder tiles, dialogs
+    ├── reader/              reader, page view, paper look, 3D page curl, dark mode filter
+    ├── settings/            settings dialog, theme toggle
+    └── theme/               colors and theme
 ```
