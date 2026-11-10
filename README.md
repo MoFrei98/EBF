@@ -114,33 +114,6 @@ EBF works completely offline and never sends data anywhere:
 
 This was checked against the final release APK and tested in airplane mode.
 
-## For developers
-
-**Stack:** Kotlin, Jetpack Compose (Material 3), Android `PdfRenderer`, Storage Access Framework, DataStore, Navigation Compose. No dependencies outside AndroidX.
-
-### Build
-
-Open the project in Android Studio. Gradle runs on JDK 21. From the command line:
-
-```bash
-./gradlew assembleDebug        # debug APK
-./gradlew testDebugUnitTest    # unit tests
-./gradlew assembleRelease      # release APK: app/build/outputs/apk/release/app-release.apk
-```
-
-The release APK is signed with Android Studio's local debug key (`~/.android/debug.keystore`). That is enough for private sideloading and means builds from Android Studio and from GitHub Releases can be installed over each other. If you build on another computer, the key differs; uninstall the app once before installing that build.
-
-### Publishing a new version
-
-1. In `app/build.gradle.kts`, increase `versionCode` by 1 and update `versionName`.
-2. Run `./gradlew assembleRelease`.
-3. Rename the APK and attach it to a release:
-
-```bash
-cp app/build/outputs/apk/release/app-release.apk EBF-1.2.apk
-gh release create v1.2 EBF-1.2.apk --title "EBF 1.2" --notes "What's new …"
-```
-
 ### Project layout
 
 ```
