@@ -86,7 +86,7 @@ final class BookDatabase {
             details_edited, added_at, last_opened_at, search_text)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, [
-            b.uuid, b.title, b.authorFirstName, b.authorLastName, b.publishYear.map(Int64.init), Int64(b.pageCount),
+            b.uuid, b.title, b.authorFirstName, b.authorLastName, b.publishYear.map { Int64($0) }, Int64(b.pageCount),
             location, b.path, b.fileName, b.fileSize, b.sha256, b.folder, Int64(b.lastPage), Double(b.lastPageOffset),
             Int64(b.detailsEdited ? 1 : 0), Int64(b.addedAt.timeIntervalSince1970 * 1000),
             Int64(b.lastOpenedAt.timeIntervalSince1970 * 1000), b.searchText,

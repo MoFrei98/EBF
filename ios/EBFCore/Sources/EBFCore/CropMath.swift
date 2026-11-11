@@ -35,6 +35,11 @@ public struct PageAnalysis: Equatable {
     /// Mittlere Helligkeit von 0 (schwarz) bis 1 (weiß).
     public var luminance: Float
 
+    public init(bounds: Crop?, luminance: Float) {
+        self.bounds = bounds
+        self.luminance = luminance
+    }
+
     /// Überwiegend dunkles Bild (z. B. Cover). Solche Seiten werden im Dark Mode nicht invertiert.
     public var isImage: Bool { luminance < 0.55 }
 }

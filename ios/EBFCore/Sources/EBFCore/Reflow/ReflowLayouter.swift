@@ -267,13 +267,17 @@ public final class ReflowLayouter {
     private func paragraphStart(_ line: TextLine, _ page: Int, _ column: (Float, Float), _ centered: Bool) -> ParagraphStyle? {
         let colW = column.1 - column.0
         let indent = Float(line.left) - column.0
+        // Leerzeile(n) davor, z. B. unter einer Überschrift: Abstand übernehmen.
         var space: Float = 0
+        if let prev = previous, !prev.figure, prev.page == page {
+            let gap = Float(line.baseline - prev.line.baseline)
+            if gap > 1.6 * style.pitch { space = min((gap - style.pitch) * k, 2.5 * pitchOut) }
+        }
         let start: Bool
         if let prev = previous, !prev.figure {
             if centered || prev.centered {
                 start = true
-            } else if prev.page == page && Float(line.baseline - prev.line.baseline) > 1.6 * style.pitch {
-                space = min((Float(line.baseline - prev.line.baseline) - style.pitch) * k, 2.5 * pitchOut)
+            } else if space > 0 {
                 start = true
             } else if prev.line.words[prev.line.words.count - 1].hyphenated {
                 start = false
