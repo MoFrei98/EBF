@@ -66,6 +66,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -106,7 +107,7 @@ private sealed interface LibraryDialog {
     data class RenameFolder(val path: String) : LibraryDialog
     data class DeleteFolder(val path: String) : LibraryDialog
     data class MoveBook(val book: Book) : LibraryDialog
-    data class RenameBook(val book: Book) : LibraryDialog
+    data class EditDetails(val book: Book) : LibraryDialog
     data class RemoveBook(val book: Book) : LibraryDialog
     data class DeleteBook(val book: Book) : LibraryDialog
 }
@@ -298,12 +299,10 @@ fun LibraryScreen(
             onNewFolder = { dialog = LibraryDialog.CreateFolder(moveInto = d.book) },
             onDismiss = close,
         )
-        is LibraryDialog.RenameBook -> NameDialog(
-            title = stringResource(R.string.rename_title),
-            initial = d.book.title,
-            confirmLabel = stringResource(R.string.save),
-            onConfirm = { title ->
-                vm.rename(d.book, title)
+        is LibraryDialog.EditDetails -> BookDetailsDialog(
+            book = d.book,
+            onSave = { title, first, last, year ->
+                vm.editDetails(d.book, title, first, last, year)
                 close()
             },
             onDismiss = close,
@@ -362,16 +361,16 @@ private fun LibraryGrid(
                 onDelete = { onDialog(LibraryDialog.DeleteFolder(tile.path)) },
             )
         }
-        items(ui.books, key = { "book:" + it.uri }) { book ->
+        items(ui.books, key = { "book:" + it.uuid }) { book ->
             BookCard(
                 book = book,
                 location = location(book.folder),
                 coverFile = vm.coverFile(book),
-                onClick = { onOpenBook(book.uri) },
+                onClick = { onOpenBook(book.uuid) },
                 onMove = {
                     onDialog(if (ui.hasLibraryFolder) LibraryDialog.MoveBook(book) else LibraryDialog.ChooseLibraryFolder)
                 },
-                onRename = { onDialog(LibraryDialog.RenameBook(book)) },
+                onEditDetails = { onDialog(LibraryDialog.EditDetails(book)) },
                 onRemove = {
                     onDialog(if (book.inLibraryFolder) LibraryDialog.DeleteBook(book) else LibraryDialog.RemoveBook(book))
                 },
@@ -383,14 +382,21 @@ private fun LibraryGrid(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchTopBar(query: String, onQueryChange: (String) -> Unit, onClose: () -> Unit) {
+    // Das Feld hält seinen Text selbst. Würde es den Text erst über die (asynchrone)
+    // Suche zurückbekommen, gingen beim schnellen Tippen Buchstaben verloren.
+    var text by rememberSaveable { mutableStateOf(query) }
+    val update: (String) -> Unit = {
+        text = it
+        onQueryChange(it)
+    }
     val focus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     TopAppBar(
         title = {
             TextField(
-                value = query,
-                onValueChange = onQueryChange,
+                value = text,
+                onValueChange = update,
                 placeholder = { Text(stringResource(R.string.search_hint)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -412,8 +418,8 @@ private fun SearchTopBar(query: String, onQueryChange: (String) -> Unit, onClose
             }
         },
         actions = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
+            if (text.isNotEmpty()) {
+                IconButton(onClick = { update("") }) {
                     Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.clear))
                 }
             }
@@ -692,7 +698,7 @@ private fun BookCard(
     coverFile: File,
     onClick: () -> Unit,
     onMove: () -> Unit,
-    onRename: () -> Unit,
+    onEditDetails: () -> Unit,
     onRemove: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -734,11 +740,11 @@ private fun BookCard(
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.rename)) },
+                        text = { Text(stringResource(R.string.edit_details)) },
                         leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
                         onClick = {
                             menuOpen = false
-                            onRename()
+                            onEditDetails()
                         },
                     )
                     DropdownMenuItem(
@@ -754,6 +760,15 @@ private fun BookCard(
                 }
             }
         }
+        // Autor und Jahr; immer eine Zeile, damit die Karten gleich hoch bleiben.
+        Text(
+            text = listOfNotNull(book.author, book.publishYear?.toString()).joinToString(" · "),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            minLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         location?.let { LocationLabel(it) }
         Spacer(Modifier.height(6.dp))
         if (book.pageCount > 0) {

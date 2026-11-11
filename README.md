@@ -22,7 +22,8 @@ The app's interface is in German. The screenshots use a sample book made for thi
 ## Features
 
 - **Library with real folders.** Pick one folder on your phone (for example `Documents/EBF`) and EBF mirrors it: subfolders become folders in the app, PDFs inside appear automatically, and sorting a book into a folder moves the file on the device. Folder tiles show the covers of the books inside.
-- **Search and filters.** Search all folders by title or file name (case, umlauts and accents don't matter) and filter by *unread*, *started* or *finished*.
+- **Book details.** Every book has a title, author and publication year. EBF fills them in automatically from the PDF's metadata or the file name (e.g. `[Lastname_Firstname]_Title.pdf`), and you can edit them.
+- **Search and filters.** Search all folders by title, author, year or file name (case, umlauts and accents don't matter) and filter by *unread*, *started* or *finished*.
 - **Book pages.** Pages turn in 3D, with an optional paper-rustle sound. The page bends from where you grab it: grab near the top and the top corner lifts first, near the bottom and the bottom corner does, in the middle the whole edge lifts; then it straightens out as it flips. Prefer something simpler? Switch to **Slideshow**.
 - **Paper look.** Each page lies on the table like a sheet of paper, with a soft shadow, shading at the spine and stacked page edges that show how far you are in the book.
 - **Bigger text without losing any.** Pick a text size: **Klein** (small, the whole page), **Normal** (half of the white margins trimmed) or **Groß** (large, margins fully trimmed for the largest text). All pages of a book are zoomed the same way, nothing on the left or right is ever cut off, and tall pages scroll vertically. No pinch zoom. The app runs in portrait mode only.
@@ -76,7 +77,8 @@ You can skip this and just add PDFs. Folders become available once a library fol
 | Sort a book into a folder | **⋮** next to the book (or long-press its cover) → **In Ordner verschieben**. You can also create a new folder from there. |
 | Rename or delete a folder | **⋮** next to the folder. Only empty folders can be deleted, so nothing gets lost by accident. |
 | Navigate | Tap a folder to open it; the back arrow or back gesture goes up one level. |
-| Search | Tap the magnifier and type. Results come from all folders and show which folder they are in. |
+| Edit book details | **⋮** next to the book → **Details bearbeiten**: title, author's first and last name, publication year. The dialog also shows the page count and where the file is stored. Your edits are never overwritten automatically. |
+| Search | Tap the magnifier and type a title, author, year or file name. Results come from all folders and show which folder they are in. |
 | Filter | Tap a chip below the toolbar: *Alle* (all), *Ungelesen* (unread), *Angefangen* (started), *Gelesen* (finished). The filter is remembered; tap *Alle* to turn it off. |
 | Sort | **⋮** → *Zuletzt gelesen* (recently read) or *Titel A–Z* |
 | Refresh | Pull down, or **⋮** → **Aktualisieren** |
@@ -115,6 +117,7 @@ EBF works completely offline and never sends data anywhere:
 - It contains no analytics, ads, crash reporting or other third-party services. All dependencies are AndroidX libraries.
 - Android's automatic cloud backup is turned off for the app, so your library list doesn't leave the device either.
 - It only accesses the PDFs you pick and the library folder you choose, through Android's system file pickers. It requests no storage permission.
+- Your library (titles, authors, reading progress, folders) is kept in a local SQLite database in the app's private storage. SQLite is built into Android, so there's nothing extra to install. The PDFs themselves stay as normal files in your library folder, they are not copied into the database.
 
 This was checked against the final release APK and tested in airplane mode.
 
@@ -128,7 +131,8 @@ The page-turn sounds are synthesized by [`tools/make_page_sounds.py`](tools/make
 app/src/main/java/com/example/ebf/
 ├── MainActivity.kt          navigation, "Open with", folder picker
 ├── EbfApp.kt                application, repositories
-├── data/                    books, library folder sync (LibraryRepository, LibraryTree), settings
+├── data/                    SQLite database (BookDatabase), library and folder sync (LibraryRepository,
+│                            LibraryTree), metadata detection (BookMetadata), settings
 ├── pdf/                     PdfDocument (rendering), Crop (margin detection)
 └── ui/
     ├── library/             library, folder tiles, dialogs

@@ -1,6 +1,7 @@
 package com.example.ebf.ui.library
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,7 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
@@ -32,6 +36,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.ebf.R
@@ -64,6 +69,80 @@ internal fun NameDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(text) }, enabled = text.isNotBlank()) { Text(confirmLabel) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
+    )
+}
+
+/** Titel, Autor und Erscheinungsjahr eines Buchs bearbeiten. */
+@Composable
+internal fun BookDetailsDialog(
+    book: Book,
+    onSave: (title: String, firstName: String, lastName: String, year: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var title by rememberSaveable(book.uuid) { mutableStateOf(book.title) }
+    var firstName by rememberSaveable(book.uuid) { mutableStateOf(book.authorFirstName.orEmpty()) }
+    var lastName by rememberSaveable(book.uuid) { mutableStateOf(book.authorLastName.orEmpty()) }
+    var year by rememberSaveable(book.uuid) { mutableStateOf(book.publishYear?.toString().orEmpty()) }
+    val yearValid = year.isBlank() || year.trim().toIntOrNull()?.let { it in 1000..2100 } == true
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.details_title)) },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text(stringResource(R.string.title_label)) },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text(stringResource(R.string.author_firstname)) },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text(stringResource(R.string.author_lastname)) },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = year,
+                    onValueChange = { input -> year = input.filter { it.isDigit() }.take(4) },
+                    label = { Text(stringResource(R.string.publish_year)) },
+                    singleLine = true,
+                    isError = !yearValid,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+                // Nur zur Info, nicht bearbeitbar.
+                if (book.pageCount > 0) {
+                    Text(
+                        stringResource(R.string.details_pages, book.pageCount),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    stringResource(R.string.details_location, book.pdfLocation ?: book.fileName ?: "–"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(title, firstName, lastName, year) },
+                enabled = title.isNotBlank() && yearValid,
+            ) { Text(stringResource(R.string.save)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }

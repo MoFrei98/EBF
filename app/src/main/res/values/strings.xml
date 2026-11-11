@@ -9,7 +9,13 @@
     <string name="page_of">Seite %1$d von %2$d</string>
     <string name="book_options">Optionen</string>
     <string name="rename">Umbenennen</string>
-    <string name="rename_title">Buch umbenennen</string>
+    <string name="edit_details">Details bearbeiten</string>
+    <string name="details_title">Buchdetails</string>
+    <string name="author_firstname">Vorname des Autors</string>
+    <string name="author_lastname">Nachname des Autors</string>
+    <string name="publish_year">Erscheinungsjahr</string>
+    <string name="details_pages">%1$d Seiten</string>
+    <string name="details_location">Speicherort: %1$s</string>
     <string name="title_label">Titel</string>
     <string name="remove">Entfernen</string>
     <string name="remove_title">Buch entfernen?</string>

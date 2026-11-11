@@ -35,7 +35,7 @@ sealed interface ReaderState {
     data class Ready(val title: String, val pageCount: Int, val initialPage: Int) : ReaderState
 }
 
-class ReaderViewModel(app: Application, private val bookUri: String) : AndroidViewModel(app) {
+class ReaderViewModel(app: Application, private val bookId: String) : AndroidViewModel(app) {
 
     private val ebf = app.ebfApp
     private val repo = ebf.library
@@ -58,10 +58,10 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
     }
 
     private suspend fun load() {
-        val book = repo.get(bookUri)
+        val book = repo.get(bookId)
             ?: return fail(R.string.error_unknown_book, canRemove = false)
         val doc = try {
-            PdfDocument.open(getApplication(), Uri.parse(bookUri))
+            PdfDocument.open(getApplication(), Uri.parse(book.uri))
         } catch (e: CancellationException) {
             throw e
         } catch (e: FileNotFoundException) {
@@ -78,7 +78,7 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
         document = doc
         val now = System.currentTimeMillis()
         ebf.appScope.launch {
-            repo.update(bookUri) { it.copy(lastOpenedAt = now, pageCount = doc.pageCount) }
+            repo.update(bookId) { it.copy(lastOpenedAt = now, pageCount = doc.pageCount) }
         }
         _state.value = ReaderState.Ready(
             title = book.title,
@@ -136,14 +136,19 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
 
     fun onPageSettled(page: Int) {
         ebf.appScope.launch {
-            repo.update(bookUri) {
+            repo.update(bookId) {
                 it.copy(lastPage = page, lastOpenedAt = System.currentTimeMillis())
             }
         }
     }
 
     fun removeBook() {
-        ebf.appScope.launch { repo.get(bookUri)?.let { repo.remove(it) } }
+        ebf.appScope.launch {
+            val book = repo.get(bookId) ?: return@launch
+            // Fehlt eine Datei im Bibliotheksordner, verschwindet der Eintrag beim nächsten
+            // Abgleich ohnehin; hier nur den Eintrag entfernen, nie eine Datei löschen.
+            repo.remove(book)
+        }
     }
 
     override fun onCleared() {
@@ -153,10 +158,10 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
     }
 
     companion object {
-        fun factory(bookUri: String) = viewModelFactory {
+        fun factory(bookId: String) = viewModelFactory {
             initializer {
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!
-                ReaderViewModel(app, bookUri)
+                ReaderViewModel(app, bookId)
             }
         }
 

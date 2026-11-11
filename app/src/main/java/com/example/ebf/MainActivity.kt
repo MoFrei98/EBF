@@ -80,8 +80,8 @@ class MainActivity : ComponentActivity() {
 
 private object Routes {
     const val LIBRARY = "library"
-    const val READER = "reader/{uri}"
-    fun reader(bookUri: String) = "reader/" + Uri.encode(bookUri)
+    const val READER = "reader/{id}"
+    fun reader(bookId: String) = "reader/" + Uri.encode(bookId)
 }
 
 @Composable
@@ -105,8 +105,8 @@ private fun EbfNavigation(
     }
 
     LaunchedEffect(libraryViewModel) {
-        libraryViewModel.openRequests.collect { bookUri ->
-            navController.navigate(Routes.reader(bookUri)) {
+        libraryViewModel.openRequests.collect { bookId ->
+            navController.navigate(Routes.reader(bookId)) {
                 popUpTo(Routes.LIBRARY)
                 launchSingleTop = true
             }
@@ -129,11 +129,11 @@ private fun EbfNavigation(
         }
         composable(
             route = Routes.READER,
-            arguments = listOf(navArgument("uri") { type = NavType.StringType }),
+            arguments = listOf(navArgument("id") { type = NavType.StringType }),
         ) { entry ->
-            val bookUri = entry.arguments?.getString("uri").orEmpty()
+            val bookId = entry.arguments?.getString("id").orEmpty()
             ReaderScreen(
-                bookUri = bookUri,
+                bookId = bookId,
                 settings = settings,
                 onBack = { navController.popBackStack() },
                 onOpenSettings = openSettings,

@@ -82,13 +82,13 @@ import kotlin.math.roundToInt
 
 @Composable
 fun ReaderScreen(
-    bookUri: String,
+    bookId: String,
     settings: AppSettings,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onToggleDark: () -> Unit,
 ) {
-    val vm: ReaderViewModel = viewModel(factory = ReaderViewModel.factory(bookUri))
+    val vm: ReaderViewModel = viewModel(factory = ReaderViewModel.factory(bookId))
     val state by vm.state.collectAsStateWithLifecycle()
 
     Box(

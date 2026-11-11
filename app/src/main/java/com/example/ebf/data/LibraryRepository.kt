@@ -8,8 +8,6 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.annotation.StringRes
-import androidx.datastore.preferences.core.MutablePreferences
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.ebf.R
@@ -17,15 +15,19 @@ import com.example.ebf.pdf.PdfDocument
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileNotFoundException
+import java.security.MessageDigest
 
 class ImportException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
@@ -42,18 +44,20 @@ enum class MoveOutcome {
 }
 
 /**
- * Speichert die Bücher der Bibliothek samt Lesefortschritt und hält sie mit dem
- * Bibliotheksordner auf dem Gerät abgeglichen.
+ * Bücher und Ordner der Bibliothek. Gespeichert wird in der lokalen SQLite-Datenbank
+ * ([BookDatabase]); die PDFs liegen als Dateien im Bibliotheksordner auf dem Gerät.
+ * Bücher werden über ihre [Book.uuid] angesprochen.
  */
 class LibraryRepository(
     private val context: Context,
     private val settings: SettingsRepository,
 ) {
 
-    private val booksKey = stringPreferencesKey("books")
-    private val foldersKey = stringPreferencesKey("folders")
-    private val store get() = context.ebfDataStore
+    private val db = BookDatabase(context)
     private val resolver get() = context.contentResolver
+
+    /** Wird nach jeder Änderung hochgezählt; alle Abfragen laufen dann neu. */
+    private val changes = MutableStateFlow(0L)
 
     /** Schützt Abgleich und Ordner-Aktionen vor gleichzeitigem Zugriff. */
     private val mutex = Mutex()
@@ -61,26 +65,46 @@ class LibraryRepository(
     /** Ordnerpfad -> Dokument-ID im Bibliotheksordner, aus dem letzten Abgleich. */
     private var folderIds: Map<String, String> = emptyMap()
 
-    val books: Flow<List<Book>> = store.data
-        .map { BookJson.decode(it[booksKey]) }
+    val books: Flow<List<Book>> = changes
+        .map { ensureMigrated(); db.allBooks() }
+        .flowOn(Dispatchers.IO)
         .distinctUntilChanged()
 
     /** Alle Unterordner des Bibliotheksordners als Pfade. */
-    val folders: Flow<List<String>> = store.data
-        .map { decodeFolders(it[foldersKey]) }
+    val folders: Flow<List<String>> = changes
+        .map { ensureMigrated(); db.folders() }
+        .flowOn(Dispatchers.IO)
         .distinctUntilChanged()
 
-    suspend fun get(uri: String): Book? = books.first().firstOrNull { it.uri == uri }
-
-    suspend fun update(uri: String, transform: (Book) -> Book) {
-        store.edit { prefs ->
-            prefs.writeBooks(prefs.readBooks().map { if (it.uri == uri) transform(it) else it })
-        }
+    /** Suche in der Datenbank nach Titel, Dateiname, Autor und Jahr. */
+    fun search(query: String): Flow<List<Book>> {
+        val words = SearchText.normalize(query).split(' ').filter { it.isNotEmpty() }
+        return changes
+            .map { ensureMigrated(); db.search(words) }
+            .flowOn(Dispatchers.IO)
+            .distinctUntilChanged()
     }
 
-    fun coverFile(book: Book): File = coverFile(book.uri)
+    suspend fun get(uuid: String): Book? = io { ensureMigrated(); db.book(uuid) }
 
-    private fun coverFile(uri: String): File = File(context.filesDir, "covers/${sha1(uri)}.jpg")
+    suspend fun update(uuid: String, transform: (Book) -> Book) = io {
+        db.transaction { db.book(uuid)?.let { db.upsert(transform(it)) } }
+        changed()
+    }
+
+    /** Titel, Autor und Jahr von Hand ändern; werden danach nicht mehr automatisch überschrieben. */
+    suspend fun updateDetails(uuid: String, title: String, firstName: String?, lastName: String?, year: Int?) =
+        update(uuid) {
+            it.copy(
+                title = title.trim().ifEmpty { it.title },
+                authorFirstName = firstName?.trim()?.ifEmpty { null },
+                authorLastName = lastName?.trim()?.ifEmpty { null },
+                publishYear = year,
+                detailsEdited = true,
+            )
+        }
+
+    fun coverFile(book: Book): File = File(context.filesDir, "covers/${book.uuid}.jpg")
 
     // ---------------------------------------------------------------- Import
 
@@ -93,7 +117,8 @@ class LibraryRepository(
      */
     suspend fun import(source: Uri): Book = withContext(Dispatchers.IO) {
         try {
-            importInternal(source)
+            ensureMigrated()
+            importInternal(source).also { changed() }
         } catch (e: CancellationException) {
             throw e
         } catch (e: ImportException) {
@@ -110,17 +135,16 @@ class LibraryRepository(
     private suspend fun importInternal(source: Uri): Book {
         val (displayName, size) = queryMeta(source)
 
-        // Dieselbe Datei ist schon in der Bibliothek, z. B. einmal über den Dateidialog
-        // und einmal über "Öffnen mit" geöffnet.
-        if (displayName != null && size >= 0) {
-            books.first().firstOrNull { it.fileName == displayName && it.fileSize == size }
-                ?.let { existing -> return touch(existing) }
-        }
+        // Dieselbe Datei ist schon in der Bibliothek (gleicher Inhalt, auch unter anderem Namen).
+        val sha256 = runCatching { sha256(source) }.getOrNull()
+        val duplicate = sha256?.let(db::bookBySha256)
+            ?: db.allBooks().firstOrNull { displayName != null && it.fileName == displayName && it.fileSize == size }
+        if (duplicate != null) return touch(duplicate)
 
         val persisted = source.scheme == ContentResolver.SCHEME_CONTENT && persistPermission(source)
         val uri = if (persisted) source else copyToInternal(source, displayName, size)
 
-        get(uri.toString())?.let { existing -> return touch(existing) }
+        db.bookByUri(uri.toString())?.let { return touch(it) }
 
         val document = try {
             PdfDocument.open(context, uri)
@@ -129,20 +153,22 @@ class LibraryRepository(
             throw ImportException(context.getString(R.string.error_open), e)
         }
         try {
-            if (document.pageCount == 0) {
-                throw ImportException(context.getString(R.string.error_empty_pdf))
-            }
+            if (document.pageCount == 0) throw ImportException(context.getString(R.string.error_empty_pdf))
+            val meta = readMetadata(uri, displayName)
             val book = Book(
                 uri = uri.toString(),
-                title = Book.titleFromFileName(displayName ?: "PDF"),
+                title = meta.title ?: Book.titleFromFileName(displayName ?: "PDF"),
+                authorFirstName = meta.firstName,
+                authorLastName = meta.lastName,
+                publishYear = meta.year,
                 pageCount = document.pageCount,
+                pdfLocation = PdfPaths.absolutePath(source) ?: PdfPaths.absolutePath(uri),
                 fileName = displayName,
                 fileSize = size,
+                sha256 = sha256,
             )
-            saveCover(document, book.uri)
-            store.edit { prefs ->
-                prefs.writeBooks(prefs.readBooks().filterNot { it.uri == book.uri } + book)
-            }
+            saveCover(document, book)
+            db.upsert(book)
             return book
         } finally {
             document.closeNow()
@@ -160,17 +186,17 @@ class LibraryRepository(
             runCatching { resolver.takePersistableUriPermission(uri, read) }.isSuccess
     }
 
-    private suspend fun touch(book: Book): Book {
+    private fun touch(book: Book): Book {
         val touched = book.copy(lastOpenedAt = System.currentTimeMillis())
-        update(book.uri) { touched }
+        db.upsert(touched)
         return touched
     }
 
     // ------------------------------------------------------ Lose Bücher entfernen
 
     /** Nimmt ein Buch aus der Bibliothek, das nicht im Bibliotheksordner liegt. Die PDF bleibt erhalten. */
-    suspend fun remove(book: Book) = withContext(Dispatchers.IO) {
-        store.edit { prefs -> prefs.writeBooks(prefs.readBooks().filterNot { it.uri == book.uri }) }
+    suspend fun remove(book: Book) = io {
+        db.delete(book.uuid)
         coverFile(book).delete()
         val uri = Uri.parse(book.uri)
         if (uri.scheme == ContentResolver.SCHEME_FILE) {
@@ -179,6 +205,7 @@ class LibraryRepository(
         } else {
             releasePermission(uri)
         }
+        changed()
     }
 
     // --------------------------------------------------------- Bibliotheksordner
@@ -211,13 +238,16 @@ class LibraryRepository(
 
     /**
      * Gleicht die Bibliothek mit dem Bibliotheksordner ab: neue PDFs und Ordner kommen
-     * dazu, gelöschte verschwinden. Neue Bücher bekommen danach im Hintergrund ein Cover.
+     * dazu, gelöschte verschwinden. Neue Bücher bekommen danach im Hintergrund Cover,
+     * Seitenzahl, Prüfsumme und erkannte Details.
      *
      * @return false, wenn der Ordner nicht gelesen werden konnte
      */
     suspend fun sync(): Boolean = withContext(Dispatchers.IO) {
+        ensureMigrated()
         val ok = mutex.withLock { syncLocked() }
-        if (ok) indexNewBooks()
+        changed()
+        indexBooks()
         ok
     }
 
@@ -236,31 +266,38 @@ class LibraryRepository(
         folderIds = scan.folders
         val now = System.currentTimeMillis()
         val released = mutableListOf<String>()
-        store.edit { prefs ->
-            val books = prefs.readBooks().toMutableList()
+        db.transaction {
+            val books = db.allBooks().toMutableList()
             val seen = HashSet<String>()
             for (file in scan.files) {
-                val uri = tree.uriOf(file.id).toString()
-                var index = books.indexOfFirst { it.uri == uri }
-                if (index < 0) {
+                val uri = tree.uriOf(file.id)
+                var existing = books.firstOrNull { it.uri == uri.toString() }
+                if (existing == null) {
                     // Gleiche Datei unter neuer Adresse (verschoben, umbenannter Ordner) oder
                     // ein loses Buch, das inzwischen auch im Bibliotheksordner liegt.
-                    index = books.indexOfFirst {
-                        it.uri !in seen && it.fileName == file.name && it.fileSize == file.size
+                    existing = books.firstOrNull {
+                        it.uuid !in seen && it.fileName == file.name && it.fileSize == file.size
                     }
                 }
-                if (index >= 0) {
-                    val old = books[index]
-                    if (old.uri != uri) {
-                        moveCover(old.uri, uri)
-                        if (old.folder == null) released += old.uri
-                    }
-                    books[index] = old.copy(uri = uri, folder = file.folder, fileName = file.name, fileSize = file.size)
+                val book = if (existing != null) {
+                    if (existing.folder == null && existing.uri != uri.toString()) released += existing.uri
+                    existing.copy(
+                        uri = uri.toString(),
+                        folder = file.folder,
+                        fileName = file.name,
+                        fileSize = file.size,
+                        pdfLocation = PdfPaths.absolutePath(uri),
+                    )
                 } else {
-                    books += Book(
-                        uri = uri,
-                        title = Book.titleFromFileName(file.name),
+                    val meta = BookMetadataParser.fromFileName(file.name)
+                    Book(
+                        uri = uri.toString(),
+                        title = meta.title ?: Book.titleFromFileName(file.name),
+                        authorFirstName = meta.firstName,
+                        authorLastName = meta.lastName,
+                        publishYear = meta.year,
                         pageCount = 0,
+                        pdfLocation = PdfPaths.absolutePath(uri),
                         folder = file.folder,
                         fileName = file.name,
                         fileSize = file.size,
@@ -268,32 +305,59 @@ class LibraryRepository(
                         lastOpenedAt = now,
                     )
                 }
-                seen += uri
+                db.upsert(book)
+                seen += book.uuid
             }
             // PDFs, die nicht mehr im Bibliotheksordner liegen.
-            val gone = books.filter { it.folder != null && it.uri !in seen }
-            gone.forEach { coverFile(it).delete() }
-            books.removeAll(gone)
-            prefs.writeBooks(books)
-            prefs[foldersKey] = encodeFolders(scan.folders.keys)
+            books.filter { it.folder != null && it.uuid !in seen }.forEach {
+                db.delete(it.uuid)
+                coverFile(it).delete()
+            }
+            db.setFolders(scan.folders.keys)
         }
         released.forEach { forgetSource(Uri.parse(it)) }
         return true
     }
 
-    /** Seitenzahl und Cover für neu gefundene Bücher. */
-    private suspend fun indexNewBooks() {
-        val pending = books.first().filter { it.pageCount == 0 || !coverFile(it).exists() }
+    /**
+     * Ergänzt im Hintergrund, was beim schnellen Abgleich fehlt: Cover, Seitenzahl,
+     * Prüfsumme und Details aus den PDF-Metadaten.
+     */
+    private suspend fun indexBooks() {
+        val pending = db.allBooks().filter { it.pageCount == 0 || it.sha256 == null || !coverFile(it).exists() }
         for (book in pending) {
-            val document = runCatching { PdfDocument.open(context, Uri.parse(book.uri)) }.getOrNull() ?: continue
+            val uri = Uri.parse(book.uri)
+            val document = runCatching { PdfDocument.open(context, uri) }.getOrNull() ?: continue
             try {
-                if (!coverFile(book).exists()) saveCover(document, book.uri)
+                if (!coverFile(book).exists()) saveCover(document, book)
                 val pageCount = document.pageCount
-                update(book.uri) { it.copy(pageCount = pageCount) }
+                val sha256 = book.sha256 ?: runCatching { sha256(uri) }.getOrNull()
+                val meta = if (book.detailsEdited) null else readMetadata(uri, book.fileName)
+                io {
+                    db.transaction {
+                        // Aktuellen Stand lesen, damit Lesefortschritt usw. nicht verloren gehen.
+                        val current = db.book(book.uuid) ?: return@transaction
+                        db.upsert(current.withMetadata(meta).copy(pageCount = pageCount, sha256 = sha256))
+                    }
+                }
+                changed()
             } finally {
                 document.closeNow()
             }
         }
+    }
+
+    /** Übernimmt erkannte Details, ohne Eingaben von Hand zu überschreiben. */
+    private fun Book.withMetadata(meta: BookMetadata?): Book {
+        if (meta == null || detailsEdited) return this
+        val autoTitle = fileName == null || title == Book.titleFromFileName(fileName) ||
+            title == BookMetadataParser.fromFileName(fileName).title
+        return copy(
+            title = if (autoTitle) meta.title ?: title else title,
+            authorFirstName = authorFirstName ?: meta.firstName,
+            authorLastName = authorLastName ?: meta.lastName,
+            publishYear = publishYear ?: meta.year,
+        )
     }
 
     private suspend fun ensureFolderIds(): LibraryTree {
@@ -310,7 +374,7 @@ class LibraryRepository(
      */
     suspend fun moveBook(book: Book, targetPath: String): Pair<Book, MoveOutcome> =
         withContext(Dispatchers.IO) {
-            mutex.withLock {
+            val result = mutex.withLock {
                 val tree = ensureFolderIds()
                 if (book.folder == targetPath) return@withLock book to MoveOutcome.MOVED
                 val targetId = folderIds[targetPath] ?: fail(R.string.error_folder_missing)
@@ -335,13 +399,17 @@ class LibraryRepository(
                 }
 
                 val newName = runCatching { queryMeta(newUri).first }.getOrNull() ?: name
-                val moved = book.copy(uri = newUri.toString(), folder = targetPath, fileName = newName)
-                store.edit { prefs ->
-                    prefs.writeBooks(prefs.readBooks().map { if (it.uri == book.uri) moved else it })
-                }
-                moveCover(book.uri, moved.uri)
+                val moved = (db.book(book.uuid) ?: book).copy(
+                    uri = newUri.toString(),
+                    folder = targetPath,
+                    fileName = newName,
+                    pdfLocation = PdfPaths.absolutePath(newUri),
+                )
+                db.upsert(moved)
                 moved to outcome
             }
+            changed()
+            result
         }
 
     private fun copyInto(tree: LibraryTree, parentId: String, source: Uri, name: String): Uri {
@@ -393,16 +461,17 @@ class LibraryRepository(
     suspend fun deleteBookFile(book: Book) = withContext(Dispatchers.IO) {
         mutex.withLock {
             if (!deleteDocument(Uri.parse(book.uri))) fail(R.string.error_delete)
-            store.edit { prefs -> prefs.writeBooks(prefs.readBooks().filterNot { it.uri == book.uri }) }
+            db.delete(book.uuid)
             coverFile(book).delete()
         }
+        changed()
     }
 
     // ------------------------------------------------------------------ Ordner
 
     /** Legt einen Ordner in [parentPath] an und gibt seinen Pfad zurück. */
     suspend fun createFolder(parentPath: String, name: String): String = withContext(Dispatchers.IO) {
-        mutex.withLock {
+        val path = mutex.withLock {
             val tree = ensureFolderIds()
             val clean = FolderPaths.cleanName(name)
             if (clean.isEmpty()) fail(R.string.error_folder_name)
@@ -412,14 +481,16 @@ class LibraryRepository(
             val id = runCatching { tree.createFolder(parentId, clean) }.getOrNull()
                 ?: fail(R.string.error_folder_create)
             folderIds = folderIds + (path to id)
-            store.edit { it[foldersKey] = encodeFolders(folderIds.keys) }
+            db.setFolders(folderIds.keys)
             path
         }
+        changed()
+        path
     }
 
     /** Benennt einen Ordner um und gibt den neuen Pfad zurück. */
     suspend fun renameFolder(path: String, name: String): String = withContext(Dispatchers.IO) {
-        mutex.withLock {
+        val newPath = mutex.withLock {
             val tree = ensureFolderIds()
             val clean = FolderPaths.cleanName(name)
             if (clean.isEmpty()) fail(R.string.error_folder_name)
@@ -434,6 +505,8 @@ class LibraryRepository(
             syncLocked()
             newPath
         }
+        changed()
+        newPath
     }
 
     /** Löscht einen leeren Ordner. */
@@ -445,28 +518,112 @@ class LibraryRepository(
             if (tree.list(id).isNotEmpty()) fail(R.string.error_folder_not_empty)
             if (!runCatching { tree.delete(id) }.getOrDefault(false)) fail(R.string.error_delete)
             folderIds = folderIds.filterKeys { !FolderPaths.isInside(it, path) || it.isEmpty() }
-            store.edit { it[foldersKey] = encodeFolders(folderIds.keys) }
+            db.setFolders(folderIds.keys)
+        }
+        changed()
+    }
+
+    // ------------------------------------------------------- Übernahme alter Daten
+
+    private val legacyBooksKey = stringPreferencesKey("books")
+    private val legacyFoldersKey = stringPreferencesKey("folders")
+    private val migrationMutex = Mutex()
+
+    @Volatile
+    private var migrated = false
+
+    /**
+     * Übernimmt einmalig die Bibliothek aus dem alten JSON-Format in die Datenbank,
+     * inklusive Lesefortschritt, Ordnern und Covern.
+     */
+    private suspend fun ensureMigrated() {
+        if (migrated) return
+        migrationMutex.withLock {
+            if (migrated) return
+            val prefs = context.ebfDataStore.data.first()
+            val oldBooks = LegacyBookJson.decode(prefs[legacyBooksKey])
+            val oldFolders = LegacyBookJson.decodeFolders(prefs[legacyFoldersKey])
+            if (oldBooks.isNotEmpty() || oldFolders.isNotEmpty()) {
+                db.transaction {
+                    for (old in oldBooks) {
+                        if (db.bookByUri(old.uri) != null) continue
+                        val meta = old.fileName?.let(BookMetadataParser::fromFileName) ?: BookMetadata()
+                        val autoTitle = old.fileName != null && old.title == Book.titleFromFileName(old.fileName)
+                        val book = old.copy(
+                            title = if (autoTitle) meta.title ?: old.title else old.title,
+                            authorFirstName = meta.firstName,
+                            authorLastName = meta.lastName,
+                            publishYear = meta.year,
+                            pdfLocation = PdfPaths.absolutePath(Uri.parse(old.uri)),
+                        )
+                        db.upsert(book)
+                        // Cover hingen bisher an der Adresse, jetzt an der uuid.
+                        val oldCover = File(context.filesDir, "covers/${sha1(old.uri)}.jpg")
+                        if (oldCover.exists()) oldCover.renameTo(coverFile(book))
+                    }
+                    if (db.folders().isEmpty()) db.setFolders(oldFolders)
+                }
+                context.ebfDataStore.edit {
+                    it.remove(legacyBooksKey)
+                    it.remove(legacyFoldersKey)
+                }
+            }
+            migrated = true
         }
     }
 
     // ------------------------------------------------------------------ Hilfen
 
+    private fun changed() = changes.update { it + 1 }
+
+    private suspend fun <T> io(block: suspend () -> T): T = withContext(Dispatchers.IO) { block() }
+
     private fun fail(@StringRes message: Int): Nothing =
         throw LibraryException(context.getString(message))
 
-    private suspend fun saveCover(document: PdfDocument, uri: String) {
+    private suspend fun saveCover(document: PdfDocument, book: Book) {
         runCatching {
             val bitmap = document.render(0, COVER_WIDTH_PX)
-            val file = coverFile(uri).apply { parentFile?.mkdirs() }
+            val file = coverFile(book).apply { parentFile?.mkdirs() }
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 85, it) }
             bitmap.recycle()
         }
     }
 
-    /** Das Cover gehört zur Adresse der PDF; ändert sie sich, wandert das Cover mit. */
-    private fun moveCover(oldUri: String, newUri: String) {
-        val old = coverFile(oldUri)
-        if (old.exists()) old.renameTo(coverFile(newUri))
+    /** Details aus der PDF (Anfang und Ende der Datei), sonst aus dem Dateinamen. */
+    private fun readMetadata(uri: Uri, fileName: String?): BookMetadata {
+        val fromName = fileName?.let(BookMetadataParser::fromFileName) ?: BookMetadata()
+        val fromPdf = runCatching {
+            resolver.openFileDescriptor(uri, "r")?.use { pfd ->
+                FileInputStream(pfd.fileDescriptor).use { input ->
+                    val channel = input.channel
+                    val size = channel.size()
+                    val head = ByteArray(minOf(size, METADATA_HEAD_BYTES).toInt())
+                    channel.position(0)
+                    input.read(head)
+                    val tailSize = minOf(size, METADATA_TAIL_BYTES).toInt()
+                    val tail = ByteArray(tailSize)
+                    channel.position(size - tailSize)
+                    input.read(tail)
+                    BookMetadataParser.fromPdf(tail, head)
+                }
+            }
+        }.getOrNull() ?: BookMetadata()
+        return fromPdf.orElse(fromName)
+    }
+
+    private fun sha256(uri: Uri): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val input = resolver.openInputStream(uri) ?: throw FileNotFoundException(uri.toString())
+        input.use { stream ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val read = stream.read(buffer)
+                if (read < 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     private fun copyToInternal(source: Uri, displayName: String?, size: Long): Uri {
@@ -506,22 +663,9 @@ class LibraryRepository(
         return meta ?: (uri.lastPathSegment to -1L)
     }
 
-    private fun Preferences.readBooks(): List<Book> = BookJson.decode(this[booksKey])
-
-    private fun MutablePreferences.writeBooks(books: List<Book>) {
-        this[booksKey] = BookJson.encode(books)
-    }
-
-    private fun encodeFolders(paths: Collection<String>): String =
-        JSONArray(paths.filter { it.isNotEmpty() }).toString()
-
-    private fun decodeFolders(json: String?): List<String> {
-        if (json.isNullOrBlank()) return emptyList()
-        val array = runCatching { JSONArray(json) }.getOrNull() ?: return emptyList()
-        return (0 until array.length()).mapNotNull { array.optString(it).ifEmpty { null } }
-    }
-
     private companion object {
         const val COVER_WIDTH_PX = 360
+        const val METADATA_HEAD_BYTES = 1024L * 1024
+        const val METADATA_TAIL_BYTES = 256L * 1024
     }
 }

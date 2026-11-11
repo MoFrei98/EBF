@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -61,9 +64,15 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     private val requestedPath = MutableStateFlow(FolderPaths.ROOT)
     private val query = MutableStateFlow<String?>(null)
 
+    /** Suchbegriff und Treffer aus der Datenbank (Titel, Dateiname, Autor, Jahr). */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val search = query.flatMapLatest { q ->
+        if (q.isNullOrBlank()) flowOf(q to emptyList()) else repo.search(q).map { q to it }
+    }
+
     val state: StateFlow<LibraryUiState?> = combine(
-        repo.books, repo.folders, settingsRepo.settings, requestedPath, query,
-    ) { books, folders, settings, requested, query ->
+        repo.books, repo.folders, settingsRepo.settings, requestedPath, search,
+    ) { books, folders, settings, requested, (query, hits) ->
         // Wurde der geöffnete Ordner gelöscht oder umbenannt, zurück nach oben.
         val path = if (requested.isEmpty() || requested in folders) requested else FolderPaths.ROOT
         val order = when (settings.sort) {
@@ -90,7 +99,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
                 .filter { SearchText.matches(query, FolderPaths.name(it)) }
                 .map(::tile)
                 .filter { filter == BookFilter.ALL || it.bookCount > 0 }
-            shown = visible.filter { SearchText.matches(query, it.title, it.fileName) }.sortedWith(order)
+            shown = hits.filter { filter.accepts(it) }.sortedWith(order)
         } else {
             tiles = FolderPaths.subfolders(folders, path).map(::tile)
                 // Bei aktivem Filter leere Ordner ausblenden.
@@ -121,7 +130,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     private val _messages = Channel<String>(Channel.BUFFERED)
     val messages: Flow<String> = _messages.receiveAsFlow()
 
-    /** URIs von Büchern, die direkt nach dem Import geöffnet werden sollen. */
+    /** IDs (uuid) von Büchern, die direkt nach dem Import geöffnet werden sollen. */
     private val _openRequests = Channel<String>(Channel.BUFFERED)
     val openRequests: Flow<String> = _openRequests.receiveAsFlow()
 
@@ -184,7 +193,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
                     message(e.message)
                 }
             }
-            _openRequests.send(book.uri)
+            _openRequests.send(book.uuid)
         }
     }
 
@@ -198,10 +207,13 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun rename(book: Book, title: String) {
-        val clean = title.trim()
-        if (clean.isEmpty()) return
-        viewModelScope.launch { repo.update(book.uri) { it.copy(title = clean) } }
+    /** Titel, Autor und Erscheinungsjahr von Hand ändern. */
+    fun editDetails(book: Book, title: String, firstName: String, lastName: String, year: String) {
+        val cleanTitle = title.trim()
+        if (cleanTitle.isEmpty()) return
+        viewModelScope.launch {
+            repo.updateDetails(book.uuid, cleanTitle, firstName, lastName, year.trim().toIntOrNull())
+        }
     }
 
     /** Lose Bücher: aus der Bibliothek nehmen, die PDF bleibt erhalten. */
