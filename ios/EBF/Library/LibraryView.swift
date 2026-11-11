@@ -423,11 +423,11 @@ private struct FolderCard: View {
                 ZStack {
                     ForEach(Array(covers.enumerated().reversed()), id: \.element.uuid) { i, book in
                         CoverImage(url: library.coverURL(for: book), version: book.pageCount)
-                            .frame(width: 70, height: 100)
+                            .frame(width: 92, height: 132)
                             .clipShape(RoundedRectangle(cornerRadius: 4))
                             .shadow(color: .black.opacity(0.25), radius: 2, y: 1)
                             .rotationEffect(.degrees(covers.count > 1 ? (i == 0 ? 6 : -8) : 0))
-                            .offset(x: covers.count > 1 ? (i == 0 ? 14 : -14) : 0)
+                            .offset(x: covers.count > 1 ? (i == 0 ? 18 : -18) : 0)
                     }
                     if covers.isEmpty {
                         Image(systemName: "folder").font(.system(size: 44)).foregroundStyle(Theme.accent)

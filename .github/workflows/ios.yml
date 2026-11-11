@@ -91,7 +91,7 @@ jobs:
           shot reading -theme light -textSize normal -demoOpen Leuchtturm -demoPage 2 -demoHideBars YES
           shot large -theme light -textSize large -demoOpen Nordlicht -demoPage 2 -demoHideBars YES
           shot small -theme light -textSize small -demoOpen Nordlicht -demoPage 2
-          shot dark -theme dark -textSize normal -demoOpen Leuchtturm -demoPage 3 -demoHideBars YES
+          shot dark -theme dark -textSize normal -demoOpen Leuchtturm -demoPage 2 -demoHideBars YES
           shot library-dark -theme dark -textSize normal
           shot settings -theme light -textSize normal -demoSettings YES
           xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "EBF"' --style compact > shots/log.txt || true
