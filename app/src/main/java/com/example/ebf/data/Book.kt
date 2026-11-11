@@ -28,6 +28,14 @@ data class Book(
     /** Liegt die PDF im Bibliotheksordner auf dem Gerät? */
     val inLibraryFolder: Boolean get() = folder != null
 
+    /** Ungelesen (Seite 1), angefangen oder gelesen (letzte Seite erreicht). */
+    val readState: ReadState
+        get() = when {
+            pageCount > 1 && lastPage >= pageCount - 1 -> ReadState.FINISHED
+            lastPage <= 0 -> ReadState.UNREAD
+            else -> ReadState.STARTED
+        }
+
     /** Lesefortschritt von 0 bis 1. */
     val progress: Float get() = if (pageCount <= 0) 0f else (lastPage + 1f) / pageCount
 

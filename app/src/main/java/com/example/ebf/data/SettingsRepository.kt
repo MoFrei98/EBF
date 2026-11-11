@@ -32,6 +32,7 @@ data class AppSettings(
     /** Lesbare Bezeichnung des Bibliotheksordners, z. B. "Documents/EBF". */
     val libraryLabel: String? = null,
     val sort: LibrarySort = LibrarySort.RECENT,
+    val filter: BookFilter = BookFilter.ALL,
 )
 
 class SettingsRepository(private val context: Context) {
@@ -42,6 +43,7 @@ class SettingsRepository(private val context: Context) {
     private val libraryTreeKey = stringPreferencesKey("library_tree")
     private val libraryLabelKey = stringPreferencesKey("library_label")
     private val sortKey = stringPreferencesKey("sort")
+    private val filterKey = stringPreferencesKey("filter")
 
     val settings: Flow<AppSettings> = context.ebfDataStore.data
         .map { prefs ->
@@ -52,6 +54,7 @@ class SettingsRepository(private val context: Context) {
                 libraryTree = prefs[libraryTreeKey],
                 libraryLabel = prefs[libraryLabelKey],
                 sort = enumOrDefault(prefs[sortKey], LibrarySort.RECENT),
+                filter = enumOrDefault(prefs[filterKey], BookFilter.ALL),
             )
         }
         .distinctUntilChanged()
@@ -73,6 +76,10 @@ class SettingsRepository(private val context: Context) {
             it[libraryTreeKey] = treeUri
             it[libraryLabelKey] = label
         }
+    }
+
+    suspend fun setFilter(value: BookFilter) {
+        context.ebfDataStore.edit { it[filterKey] = value.name }
     }
 
     suspend fun setSort(value: LibrarySort) {

@@ -19,6 +19,17 @@
     <string name="cover_description">Cover von %1$s</string>
     <string name="book_new">Neu</string>
     <string name="more_options">Weitere Optionen</string>
+    <string name="search">Suchen</string>
+    <string name="search_hint">Bücher und Ordner suchen</string>
+    <string name="search_close">Suche schließen</string>
+    <string name="clear">Leeren</string>
+    <string name="no_results">Keine Bücher gefunden für „%1$s“</string>
+    <string name="filter_all">Alle</string>
+    <string name="filter_unread">Ungelesen</string>
+    <string name="filter_started">Angefangen</string>
+    <string name="filter_finished">Gelesen</string>
+    <string name="no_filter_results">Keine Bücher für diesen Filter</string>
+    <string name="reset_filter">Filter zurücksetzen</string>
     <string name="refresh">Aktualisieren</string>
     <string name="sort_by">Sortieren nach</string>
     <string name="sort_recent">Zuletzt gelesen</string>

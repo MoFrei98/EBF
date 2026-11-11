@@ -7,11 +7,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ebf.R
 import com.example.ebf.data.Book
+import com.example.ebf.data.BookFilter
 import com.example.ebf.data.FolderPaths
 import com.example.ebf.data.ImportException
 import com.example.ebf.data.LibraryException
 import com.example.ebf.data.LibrarySort
 import com.example.ebf.data.MoveOutcome
+import com.example.ebf.data.SearchText
 import com.example.ebf.ebfApp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -40,7 +42,15 @@ data class LibraryUiState(
     val allFolders: List<String>,
     val hasLibraryFolder: Boolean,
     val sort: LibrarySort,
-)
+    val filter: BookFilter,
+    /** Suchbegriff; `null`, solange die Suche geschlossen ist. */
+    val query: String?,
+    /** Anzahl aller Bücher in der Bibliothek (ohne Filter). */
+    val totalBooks: Int,
+) {
+    /** Suche mit Text: Treffer aus allen Ordnern. */
+    val searching: Boolean get() = !query.isNullOrBlank()
+}
 
 class LibraryViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -49,28 +59,46 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     private val collator = Collator.getInstance(Locale.GERMAN)
 
     private val requestedPath = MutableStateFlow(FolderPaths.ROOT)
+    private val query = MutableStateFlow<String?>(null)
 
     val state: StateFlow<LibraryUiState?> = combine(
-        repo.books, repo.folders, settingsRepo.settings, requestedPath,
-    ) { books, folders, settings, requested ->
+        repo.books, repo.folders, settingsRepo.settings, requestedPath, query,
+    ) { books, folders, settings, requested, query ->
         // Wurde der geöffnete Ordner gelöscht oder umbenannt, zurück nach oben.
         val path = if (requested.isEmpty() || requested in folders) requested else FolderPaths.ROOT
         val order = when (settings.sort) {
             LibrarySort.RECENT -> compareByDescending<Book> { it.lastOpenedAt }
             LibrarySort.TITLE -> compareBy<Book, String>(collator) { it.title }
         }
-        val tiles = FolderPaths.subfolders(folders, path).map { folder ->
-            val inside = books.filter { it.folder != null && FolderPaths.isInside(it.folder, folder) }
-            FolderTile(
+        val filter = settings.filter
+        val visible = books.filter { filter.accepts(it) }
+        fun tile(folder: String): FolderTile {
+            val inside = visible.filter { it.folder != null && FolderPaths.isInside(it.folder, folder) }
+            return FolderTile(
                 path = folder,
                 name = FolderPaths.name(folder),
                 bookCount = inside.size,
                 covers = inside.sortedByDescending { it.lastOpenedAt }.take(3),
             )
         }
-        val shown = books.filter {
-            if (path.isEmpty()) it.folder == null || it.folder == FolderPaths.ROOT else it.folder == path
-        }.sortedWith(order)
+
+        val tiles: List<FolderTile>
+        val shown: List<Book>
+        if (!query.isNullOrBlank()) {
+            // Suche: Treffer aus allen Ordnern.
+            tiles = FolderPaths.treeOrder(folders)
+                .filter { SearchText.matches(query, FolderPaths.name(it)) }
+                .map(::tile)
+                .filter { filter == BookFilter.ALL || it.bookCount > 0 }
+            shown = visible.filter { SearchText.matches(query, it.title, it.fileName) }.sortedWith(order)
+        } else {
+            tiles = FolderPaths.subfolders(folders, path).map(::tile)
+                // Bei aktivem Filter leere Ordner ausblenden.
+                .filter { filter == BookFilter.ALL || it.bookCount > 0 }
+            shown = visible.filter {
+                if (path.isEmpty()) it.folder == null || it.folder == FolderPaths.ROOT else it.folder == path
+            }.sortedWith(order)
+        }
         LibraryUiState(
             path = path,
             folders = tiles,
@@ -78,6 +106,9 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
             allFolders = FolderPaths.treeOrder(folders),
             hasLibraryFolder = settings.libraryTree != null,
             sort = settings.sort,
+            filter = filter,
+            query = query,
+            totalBooks = books.size,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -105,6 +136,23 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openFolder(path: String) {
         requestedPath.value = path
+        query.value = null
+    }
+
+    fun openSearch() {
+        if (query.value == null) query.value = ""
+    }
+
+    fun setQuery(text: String) {
+        query.value = text
+    }
+
+    fun closeSearch() {
+        query.value = null
+    }
+
+    fun setFilter(filter: BookFilter) {
+        viewModelScope.launch { settingsRepo.setFilter(filter) }
     }
 
     /** Eine Ebene nach oben. @return false, wenn wir schon ganz oben sind. */

@@ -8,6 +8,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,15 +35,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +58,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -64,20 +73,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ebf.R
 import com.example.ebf.data.Book
+import com.example.ebf.data.BookFilter
 import com.example.ebf.data.FolderPaths
 import com.example.ebf.data.LibrarySort
 import kotlinx.coroutines.Dispatchers
@@ -118,11 +133,20 @@ fun LibraryScreen(
     var dialog by remember { mutableStateOf<LibraryDialog?>(null) }
     val ui = state
     val inFolder = ui != null && ui.path.isNotEmpty()
+    val searchOpen = ui?.query != null
     BackHandler(enabled = inFolder) { vm.navigateUp() }
+    // Später deklariert = hat Vorrang: zuerst die Suche schließen, dann eine Ebene hoch.
+    BackHandler(enabled = searchOpen) { vm.closeSearch() }
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            if (searchOpen) {
+                SearchTopBar(
+                    query = ui?.query.orEmpty(),
+                    onQueryChange = vm::setQuery,
+                    onClose = vm::closeSearch,
+                )
+            } else TopAppBar(
                 title = {
                     Column {
                         Text(
@@ -149,6 +173,9 @@ fun LibraryScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = vm::openSearch) {
+                        Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search))
+                    }
                     topBarActions()
                     LibraryMenu(
                         sort = ui?.sort ?: LibrarySort.RECENT,
@@ -164,7 +191,7 @@ fun LibraryScreen(
             )
         },
         floatingActionButton = {
-            if (ui != null && (ui.books.isNotEmpty() || ui.folders.isNotEmpty() || inFolder)) {
+            if (ui != null && !searchOpen && (ui.totalBooks > 0 || ui.folders.isNotEmpty() || inFolder)) {
                 ExtendedFloatingActionButton(
                     onClick = pickPdf,
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
@@ -181,44 +208,38 @@ fun LibraryScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            when {
-                ui == null -> Unit
-                ui.books.isEmpty() && ui.folders.isEmpty() -> EmptyState(
-                    inFolder = inFolder,
-                    hasLibraryFolder = ui.hasLibraryFolder,
-                    onAdd = pickPdf,
-                    onChooseLibraryFolder = { dialog = LibraryDialog.ChooseLibraryFolder },
-                )
-                else -> LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 150.dp),
-                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 96.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxSize(),
+            Column(Modifier.fillMaxSize()) {
+                if (ui != null && ui.totalBooks > 0) {
+                    FilterChips(filter = ui.filter, onFilter = vm::setFilter)
+                }
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
                 ) {
-                    items(ui.folders, key = { "folder:" + it.path }) { tile ->
-                        FolderCard(
-                            tile = tile,
-                            coverFile = vm::coverFile,
-                            onOpen = { vm.openFolder(tile.path) },
-                            onRename = { dialog = LibraryDialog.RenameFolder(tile.path) },
-                            onDelete = { dialog = LibraryDialog.DeleteFolder(tile.path) },
-                        )
-                    }
-                    items(ui.books, key = { "book:" + it.uri }) { book ->
-                        BookCard(
-                            book = book,
-                            coverFile = vm.coverFile(book),
-                            onClick = { onOpenBook(book.uri) },
-                            onMove = {
-                                dialog = if (ui.hasLibraryFolder) LibraryDialog.MoveBook(book)
-                                else LibraryDialog.ChooseLibraryFolder
-                            },
-                            onRename = { dialog = LibraryDialog.RenameBook(book) },
-                            onRemove = {
-                                dialog = if (book.inLibraryFolder) LibraryDialog.DeleteBook(book)
-                                else LibraryDialog.RemoveBook(book)
-                            },
+                    when {
+                        ui == null -> Unit
+                        ui.books.isEmpty() && ui.folders.isEmpty() -> when {
+                            ui.searching -> NoResults(
+                                text = stringResource(R.string.no_results, ui.query.orEmpty().trim()),
+                            )
+                            ui.filter != BookFilter.ALL && ui.totalBooks > 0 -> NoResults(
+                                text = stringResource(R.string.no_filter_results),
+                                action = stringResource(R.string.reset_filter),
+                                onAction = { vm.setFilter(BookFilter.ALL) },
+                            )
+                            else -> EmptyState(
+                                inFolder = inFolder,
+                                hasLibraryFolder = ui.hasLibraryFolder,
+                                onAdd = pickPdf,
+                                onChooseLibraryFolder = { dialog = LibraryDialog.ChooseLibraryFolder },
+                            )
+                        }
+                        else -> LibraryGrid(
+                            ui = ui,
+                            vm = vm,
+                            onOpenBook = onOpenBook,
+                            onDialog = { dialog = it },
                         )
                     }
                 }
@@ -311,6 +332,169 @@ fun LibraryScreen(
 }
 
 @Composable
+private fun LibraryGrid(
+    ui: LibraryUiState,
+    vm: LibraryViewModel,
+    onOpenBook: (String) -> Unit,
+    onDialog: (LibraryDialog) -> Unit,
+) {
+    val rootLabel = stringResource(R.string.library_title)
+    // In der Suche steht bei jedem Treffer, wo er liegt.
+    fun location(folder: String?): String? = when {
+        !ui.searching -> null
+        folder.isNullOrEmpty() -> rootLabel
+        else -> folder.replace("/", " › ")
+    }
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 150.dp),
+        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 96.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        items(ui.folders, key = { "folder:" + it.path }) { tile ->
+            FolderCard(
+                tile = tile,
+                location = location(FolderPaths.parent(tile.path)),
+                coverFile = vm::coverFile,
+                onOpen = { vm.openFolder(tile.path) },
+                onRename = { onDialog(LibraryDialog.RenameFolder(tile.path)) },
+                onDelete = { onDialog(LibraryDialog.DeleteFolder(tile.path)) },
+            )
+        }
+        items(ui.books, key = { "book:" + it.uri }) { book ->
+            BookCard(
+                book = book,
+                location = location(book.folder),
+                coverFile = vm.coverFile(book),
+                onClick = { onOpenBook(book.uri) },
+                onMove = {
+                    onDialog(if (ui.hasLibraryFolder) LibraryDialog.MoveBook(book) else LibraryDialog.ChooseLibraryFolder)
+                },
+                onRename = { onDialog(LibraryDialog.RenameBook(book)) },
+                onRemove = {
+                    onDialog(if (book.inLibraryFolder) LibraryDialog.DeleteBook(book) else LibraryDialog.RemoveBook(book))
+                },
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchTopBar(query: String, onQueryChange: (String) -> Unit, onClose: () -> Unit) {
+    val focus = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    TopAppBar(
+        title = {
+            TextField(
+                value = query,
+                onValueChange = onQueryChange,
+                placeholder = { Text(stringResource(R.string.search_hint)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focus),
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onClose) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.search_close))
+            }
+        },
+        actions = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.clear))
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun FilterChips(filter: BookFilter, onFilter: (BookFilter) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+    ) {
+        listOf(
+            BookFilter.ALL to R.string.filter_all,
+            BookFilter.UNREAD to R.string.filter_unread,
+            BookFilter.STARTED to R.string.filter_started,
+            BookFilter.FINISHED to R.string.filter_finished,
+        ).forEach { (option, label) ->
+            val selected = filter == option
+            FilterChip(
+                selected = selected,
+                onClick = { onFilter(option) },
+                label = { Text(stringResource(label)) },
+                leadingIcon = if (selected) {
+                    { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                } else null,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NoResults(text: String, action: String? = null, onAction: () -> Unit = {}) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(Modifier.height(80.dp))
+        Icon(
+            Icons.Filled.Search,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(64.dp),
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(text, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        if (action != null) {
+            Spacer(Modifier.height(16.dp))
+            OutlinedButton(onClick = onAction) { Text(action) }
+        }
+    }
+}
+
+@Composable
+private fun LocationLabel(location: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+        Icon(
+            painterResource(R.drawable.ic_folder),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(12.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            location,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
 private fun LibraryMenu(
     sort: LibrarySort,
     hasLibraryFolder: Boolean,
@@ -370,6 +554,7 @@ private fun LibraryMenu(
 @Composable
 private fun FolderCard(
     tile: FolderTile,
+    location: String?,
     coverFile: (Book) -> File,
     onOpen: () -> Unit,
     onRename: () -> Unit,
@@ -458,6 +643,7 @@ private fun FolderCard(
                 }
             }
         }
+        location?.let { LocationLabel(it) }
         Spacer(Modifier.height(4.dp))
         Text(
             pluralStringResource(R.plurals.book_count, tile.bookCount, tile.bookCount),
@@ -502,6 +688,7 @@ private fun FannedCovers(covers: List<Book>, coverFile: (Book) -> File) {
 @Composable
 private fun BookCard(
     book: Book,
+    location: String?,
     coverFile: File,
     onClick: () -> Unit,
     onMove: () -> Unit,
@@ -567,6 +754,7 @@ private fun BookCard(
                 }
             }
         }
+        location?.let { LocationLabel(it) }
         Spacer(Modifier.height(6.dp))
         if (book.pageCount > 0) {
             LinearProgressIndicator(
