@@ -205,8 +205,8 @@ def write_pdf(path, f, pages, title, author):
 
 
 BOOKS = [
-    # Ordner, Dateiname, Titel, Untertitel, Autor, Himmelfarbe, Format
-    ("Meer", "[Holm_Marta]_Der_Leuchtturm (2019).pdf", "Der Leuchtturm", "Eine Geschichte von der Insel Varn",
+    # Ordner ("" = oberste Ebene), Dateiname, Titel, Untertitel, Autor, Himmelfarbe, Format
+    ("", "[Holm_Marta]_Der_Leuchtturm (2019).pdf", "Der Leuchtturm", "Eine Geschichte von der Insel Varn",
      "Marta Holm", (0.18, 0.29, 0.38), POCKET),
     ("Meer", "[Eck_Jonas]_Abendrot (2021).pdf", "Abendrot", "Erzählungen vom Meer",
      "Jonas Eck", (0.55, 0.27, 0.22), POCKET),
