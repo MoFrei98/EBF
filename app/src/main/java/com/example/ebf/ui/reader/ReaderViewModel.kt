@@ -98,11 +98,12 @@ class ReaderViewModel(app: Application, private val bookUri: String) : AndroidVi
     suspend fun pageSize(page: Int): Size = requireDocument().pageSize(page)
 
     /** Ausschnitt einer Seite für das Format "Ränder entfernen". */
-    suspend fun pageCrop(page: Int): Crop {
+    suspend fun pageCrop(page: Int, tight: Boolean = false): Crop {
         val doc = requireDocument()
         val typical = (typicalBounds ?: viewModelScope.async { computeTypicalBounds(doc) }
             .also { typicalBounds = it }).await()
-        return CropMath.cropFor(boundsOf(doc, page), typical.forPage(page))
+        val padding = if (tight) CropMath.PADDING_TIGHT else CropMath.PADDING
+        return CropMath.cropFor(boundsOf(doc, page), typical.forPage(page), padding)
     }
 
     /** Ob die Seite überwiegend ein Bild ist (wird im Dark Mode nicht invertiert). */

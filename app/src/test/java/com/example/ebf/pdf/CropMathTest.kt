@@ -88,6 +88,15 @@ class CropMathTest {
     }
 
     @Test
+    fun `tight padding keeps a little air but never cuts content`() {
+        val content = Crop(0.1f, 0.1f, 0.9f, 0.9f)
+        val tight = CropMath.cropFor(content, content, CropMath.PADDING_TIGHT)
+        val normal = CropMath.cropFor(content, content)
+        assertTrue(tight.width < normal.width)
+        assertTrue(tight.left < content.left && tight.right > content.right)
+    }
+
+    @Test
     fun `halfway lies between full page and crop`() {
         assertEquals(Crop(0.05f, 0.1f, 0.95f, 0.85f), Crop(0.1f, 0.2f, 0.9f, 0.7f).halfway())
         assertEquals(Crop.FULL, Crop.FULL.halfway())

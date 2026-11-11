@@ -42,7 +42,7 @@ import com.example.ebf.ui.theme.LightReaderColors
 import com.example.ebf.ui.theme.LocalReaderColors
 
 private val PageHPadding = 12.dp
-private val PageHPaddingClose = 6.dp
+private val PageHPaddingClose = 2.dp
 private val PageVPadding = 16.dp
 
 /**
@@ -96,7 +96,7 @@ internal fun PageView(
             when (zoom) {
                 ZoomMode.WIDE -> Crop.FULL
                 ZoomMode.NORMAL -> vm.pageCrop(page).halfway()
-                ZoomMode.CLOSE -> vm.pageCrop(page)
+                ZoomMode.CLOSE -> vm.pageCrop(page, tight = true)
             }
         }
         // Seitengröße der PDF in Punkten. Bewusst nicht "size" genannt: In den Zeichen-

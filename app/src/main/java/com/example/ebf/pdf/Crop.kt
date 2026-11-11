@@ -91,6 +91,10 @@ object CropMath {
     /** Etwas Luft um den Inhalt, damit nichts am Rand klebt. */
     const val PADDING = 0.02f
 
+    /** Für "Groß": nur so viel Luft, dass auch sehr helle Kanten von Buchstaben
+     *  (bis 2 Pixel der Vorschau) sicher sichtbar bleiben. */
+    const val PADDING_TIGHT = 0.006f
+
     /** Pixel heller als dieser Wert (in allen Kanälen) gelten als weißer Rand. */
     private const val WHITE_THRESHOLD = 232
 
@@ -144,12 +148,12 @@ object CropMath {
      * vereinigt. Dadurch wird nie Inhalt abgeschnitten, und Seiten mit wenig Text
      * (z. B. Kapitelanfänge) werden nicht stärker vergrößert als normale Seiten.
      */
-    fun cropFor(page: Crop?, typical: Crop?): Crop {
+    fun cropFor(page: Crop?, typical: Crop?, padding: Float = PADDING): Crop {
         val base = when {
             page != null && typical != null -> page.union(typical)
             else -> page ?: typical ?: return Crop.FULL
         }
-        val padded = base.expand(PADDING)
+        val padded = base.expand(padding)
         // Fast kein Rand vorhanden: lieber die ganze Seite zeigen.
         if (padded.width > 0.97f && padded.height > 0.97f) return Crop.FULL
         return padded
