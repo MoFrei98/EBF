@@ -79,8 +79,9 @@ internal fun PageView(
         val crop = rememberResult(page, zoom) {
             when (zoom) {
                 ZoomMode.WIDE -> Crop.FULL
-                ZoomMode.NORMAL -> vm.pageCrop(page).halfway()
-                ZoomMode.CLOSE -> vm.pageCrop(page, tight = true)
+                // "Normal": Ränder ganz weg, der Text füllt die Breite. ("Groß" wird neu
+                // umbrochen und läuft über ReflowPageView.)
+                ZoomMode.NORMAL, ZoomMode.CLOSE -> vm.pageCrop(page, tight = true)
             }
         }
         // Seitengröße der PDF in Punkten. Bewusst nicht "size" genannt: In den Zeichen-
@@ -90,7 +91,8 @@ internal fun PageView(
 
         // Seitenverhältnis des sichtbaren Ausschnitts.
         val aspect = (pdfSize.height * crop.height) / (pdfSize.width * crop.width)
-        val hPadding = if (zoom == ZoomMode.CLOSE) PageHPaddingClose else PageHPadding
+        // Ohne Ränder zählt jeder Millimeter, dort ist der Abstand zum Bildschirmrand schmaler.
+        val hPadding = if (zoom == ZoomMode.WIDE) PageHPadding else PageHPaddingClose
         val availableWidth = maxWidth - hPadding * 2
         val availableHeight = maxHeight - PageVPadding * 2
         val width = when (zoom) {

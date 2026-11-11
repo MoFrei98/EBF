@@ -80,7 +80,7 @@
     <string name="zoom_wide">Klein</string>
     <string name="zoom_wide_hint">Die ganze Seite ist sichtbar</string>
     <string name="zoom_normal">Normal</string>
-    <string name="zoom_normal_hint">Ränder zur Hälfte weg</string>
+    <string name="zoom_normal_hint">Ränder ganz weg, Text füllt die Breite</string>
     <string name="zoom_close">Groß</string>
     <string name="zoom_close_hint">Text wird neu umbrochen, viel größere Schrift. Mehr Seiten.</string>
 

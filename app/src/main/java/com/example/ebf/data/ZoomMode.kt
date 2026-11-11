@@ -8,7 +8,7 @@ enum class ZoomMode {
     /** "Klein": Die ganze Seite ist sichtbar. */
     WIDE,
 
-    /** "Normal": Weiße Ränder zur Hälfte weg. */
+    /** "Normal": Weiße Ränder ganz weg, der Text füllt die Breite. Hohe Seiten scrollen. */
     NORMAL,
 
     /**
@@ -20,7 +20,7 @@ enum class ZoomMode {
     companion object {
         /** Liest den gespeicherten Wert, auch aus älteren Versionen der App. */
         fun fromStored(name: String?): ZoomMode = when (name) {
-            "CROP_MARGINS" -> CLOSE
+            "CROP_MARGINS" -> NORMAL
             "FIT_PAGE" -> WIDE
             else -> entries.firstOrNull { it.name == name } ?: NORMAL
         }

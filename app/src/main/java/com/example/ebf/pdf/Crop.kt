@@ -21,14 +21,6 @@ data class Crop(val left: Float, val top: Float, val right: Float, val bottom: F
         bottom = (bottom + amount).coerceAtMost(1f),
     )
 
-    /** Ausschnitt genau zwischen der ganzen Seite und diesem Ausschnitt. */
-    fun halfway() = Crop(
-        left = left / 2f,
-        top = top / 2f,
-        right = (1f + right) / 2f,
-        bottom = (1f + bottom) / 2f,
-    )
-
     fun toRectF() = RectF(left, top, right, bottom)
 
     companion object {
@@ -91,7 +83,7 @@ object CropMath {
     /** Etwas Luft um den Inhalt, damit nichts am Rand klebt. */
     const val PADDING = 0.02f
 
-    /** Für "Groß": nur so viel Luft, dass auch sehr helle Kanten von Buchstaben
+    /** Für "Normal": nur so viel Luft, dass auch sehr helle Kanten von Buchstaben
      *  (bis 2 Pixel der Vorschau) sicher sichtbar bleiben. */
     const val PADDING_TIGHT = 0.006f
 

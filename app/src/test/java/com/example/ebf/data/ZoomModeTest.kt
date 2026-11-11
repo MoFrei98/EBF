@@ -7,7 +7,8 @@ class ZoomModeTest {
     @Test
     fun `old settings are migrated`() {
         assertEquals(ZoomMode.WIDE, ZoomMode.fromStored("FIT_PAGE"))
-        assertEquals(ZoomMode.CLOSE, ZoomMode.fromStored("CROP_MARGINS"))
+        assertEquals(ZoomMode.NORMAL, ZoomMode.fromStored("CROP_MARGINS"))
+        assertEquals(ZoomMode.CLOSE, ZoomMode.fromStored("CLOSE"))
     }
 
     @Test
