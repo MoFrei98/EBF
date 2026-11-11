@@ -26,7 +26,7 @@ The app's interface is in German. The screenshots use a sample book made for thi
 - **Search and filters.** Search all folders by title, author, year or file name (case, umlauts and accents don't matter) and filter by *unread*, *started* or *finished*.
 - **Book pages.** Pages turn in 3D, with an optional paper-rustle sound. The page bends from where you grab it: grab near the top and the top corner lifts first, near the bottom and the bottom corner does, in the middle the whole edge lifts; then it straightens out as it flips. Prefer something simpler? Switch to **Slideshow**.
 - **Paper look.** Each page lies on the table like a sheet of paper, with a soft shadow, shading at the spine and stacked page edges that show how far you are in the book.
-- **Bigger text without losing any.** Pick a text size: **Klein** (small, the whole page), **Normal** (half of the white margins trimmed) or **Groß** (large, margins fully trimmed for the largest text). All pages of a book are zoomed the same way, nothing on the left or right is ever cut off, and tall pages scroll vertically. No pinch zoom. The app runs in portrait mode only.
+- **Bigger text without losing any.** Pick a text size: **Klein** (small, the whole page), **Normal** (half of the white margins trimmed, the default) or **Groß** (large print). With **Groß** the text is reflowed like in an e-book: EBF finds the lines and words on each page and sets them again in larger, shorter lines, keeping the book's font, italics and pictures. Words split by a hyphen at the end of a line are joined again. One PDF page then spans several screen pages and the page count adapts. Nothing on the left or right is ever cut off, in any size. No pinch zoom. The app runs in portrait mode only.
 - **Dark mode for app and pages.** Pages are shown as light text on dark paper. Colors keep their hue and picture pages such as covers are only dimmed, not inverted.
 - **Remembers where you are.** Every book reopens on the page you left it.
 - **"Open with → EBF"** from your file manager, downloads or messengers.
@@ -105,7 +105,7 @@ The toolbars hide automatically when you turn a page, so you read in full screen
 | --- | --- |
 | Library folder | The folder on your device that EBF mirrors. Tap **Ändern** to choose another one. |
 | Design | **System**, **Hell** (light) or **Dunkel** (dark). In dark mode the pages are always darkened. |
-| Text size | **Klein** (small, whole page, default), **Normal** (half the margins trimmed) or **Groß** (large, margins fully trimmed). Text is never cut off. |
+| Text size | **Klein** (small, whole page), **Normal** (half the margins trimmed, default) or **Groß** (text reflowed in much larger print, more pages). The first time you open a book in **Groß** it takes a few seconds to prepare; after that it opens right away. Text is never cut off. |
 | Page-turn sound | Soft paper rustle when you turn a page. Off by default; silent when the phone is on silent or vibrate. |
 | Page turning | **Buchseiten** (3D book pages) or **Slideshow** (pages simply slide) |
 

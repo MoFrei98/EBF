@@ -28,6 +28,8 @@ data class Book(
     val folder: String? = null,
     /** Zuletzt gelesene Seite (0-basiert). */
     val lastPage: Int = 0,
+    /** Stelle innerhalb von [lastPage] (0..1), für die neu umbrochene Schriftgröße "Groß". */
+    val lastPageOffset: Float = 0f,
     /** Titel/Autor/Jahr wurden von Hand bearbeitet und werden nicht mehr automatisch überschrieben. */
     val detailsEdited: Boolean = false,
     val addedAt: Long = System.currentTimeMillis(),

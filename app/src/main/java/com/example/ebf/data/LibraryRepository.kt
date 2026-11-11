@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.ebf.R
 import com.example.ebf.pdf.PdfDocument
+import com.example.ebf.reflow.ReflowEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -106,6 +107,12 @@ class LibraryRepository(
 
     fun coverFile(book: Book): File = File(context.filesDir, "covers/${book.uuid}.jpg")
 
+    /** Cover und gespeicherte Analyse für "Groß" eines Buchs löschen. */
+    private fun deleteCaches(book: Book) {
+        coverFile(book).delete()
+        ReflowEngine.cacheFile(context, book.uuid).delete()
+    }
+
     // ---------------------------------------------------------------- Import
 
     /**
@@ -197,7 +204,7 @@ class LibraryRepository(
     /** Nimmt ein Buch aus der Bibliothek, das nicht im Bibliotheksordner liegt. Die PDF bleibt erhalten. */
     suspend fun remove(book: Book) = io {
         db.delete(book.uuid)
-        coverFile(book).delete()
+        deleteCaches(book)
         val uri = Uri.parse(book.uri)
         if (uri.scheme == ContentResolver.SCHEME_FILE) {
             // Interne Kopie: nur die Kopie löschen, das Original bleibt unberührt.
@@ -311,7 +318,7 @@ class LibraryRepository(
             // PDFs, die nicht mehr im Bibliotheksordner liegen.
             books.filter { it.folder != null && it.uuid !in seen }.forEach {
                 db.delete(it.uuid)
-                coverFile(it).delete()
+                deleteCaches(it)
             }
             db.setFolders(scan.folders.keys)
         }
@@ -462,7 +469,7 @@ class LibraryRepository(
         mutex.withLock {
             if (!deleteDocument(Uri.parse(book.uri))) fail(R.string.error_delete)
             db.delete(book.uuid)
-            coverFile(book).delete()
+            deleteCaches(book)
         }
         changed()
     }

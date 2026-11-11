@@ -32,6 +32,7 @@ class BookDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, VER
                 sha256           TEXT,
                 folder           TEXT,
                 last_page        INTEGER NOT NULL DEFAULT 0,
+                last_page_offset REAL NOT NULL DEFAULT 0,
                 details_edited   INTEGER NOT NULL DEFAULT 0,
                 added_at         INTEGER NOT NULL,
                 last_opened_at   INTEGER NOT NULL,
@@ -45,7 +46,10 @@ class BookDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, VER
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Noch keine älteren Versionen. Künftige Schema-Änderungen kommen hierher.
+        if (oldVersion < 2) {
+            // Version 2: genaue Lesestelle für die Schriftgröße "Groß".
+            db.execSQL("ALTER TABLE books ADD COLUMN last_page_offset REAL NOT NULL DEFAULT 0")
+        }
     }
 
     // ------------------------------------------------------------------ Bücher
@@ -129,6 +133,7 @@ class BookDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, VER
         put("sha256", b.sha256)
         put("folder", b.folder)
         put("last_page", b.lastPage)
+        put("last_page_offset", b.lastPageOffset)
         put("details_edited", if (b.detailsEdited) 1 else 0)
         put("added_at", b.addedAt)
         put("last_opened_at", b.lastOpenedAt)
@@ -153,6 +158,7 @@ class BookDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, VER
             sha256 = str("sha256"),
             folder = str("folder"),
             lastPage = int("last_page") ?: 0,
+            lastPageOffset = getFloat(getColumnIndexOrThrow("last_page_offset")),
             detailsEdited = int("details_edited") == 1,
             addedAt = long("added_at"),
             lastOpenedAt = long("last_opened_at"),
@@ -161,6 +167,6 @@ class BookDatabase(context: Context) : SQLiteOpenHelper(context, NAME, null, VER
 
     private companion object {
         const val NAME = "ebf.db"
-        const val VERSION = 1
+        const val VERSION = 2
     }
 }

@@ -18,6 +18,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -80,6 +81,42 @@ class PdfDocument private constructor(
             bitmap
         }
     }
+
+    /**
+     * Rendert einen Bereich der Seite.
+     *
+     * @param scale Pixel pro PDF-Punkt
+     * @param area Bereich in PDF-Punkten; die Bitmap ist genau so groß wie dieser Bereich
+     */
+    suspend fun renderArea(index: Int, scale: Float, area: RectF): Bitmap = locked {
+        renderer.openPage(index).use { page ->
+            sizes[index] = Size(page.width, page.height)
+            val w = max(1, ceil(area.width() * scale).toInt())
+            val h = max(1, ceil(area.height() * scale).toInt())
+            val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            bitmap.eraseColor(Color.WHITE)
+            val matrix = Matrix().apply {
+                setScale(scale, scale)
+                postTranslate(-area.left * scale, -area.top * scale)
+            }
+            page.render(bitmap, null, matrix, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+            bitmap
+        }
+    }
+
+    /** Pixel (ARGB) der ganzen Seite bei [scale] Pixeln pro PDF-Punkt, für die Analyse. */
+    suspend fun renderPixels(index: Int, scale: Float): Pixels {
+        val size = pageSize(index)
+        val bitmap = renderArea(index, scale, RectF(0f, 0f, size.width.toFloat(), size.height.toFloat()))
+        val w = bitmap.width
+        val h = bitmap.height
+        val pixels = IntArray(w * h)
+        bitmap.getPixels(pixels, 0, w, 0, 0, w, h)
+        bitmap.recycle()
+        return Pixels(pixels, w, h)
+    }
+
+    class Pixels(val argb: IntArray, val width: Int, val height: Int)
 
     /**
      * Analysiert eine kleine Vorschau der Seite: Wo steht etwas (für "Ränder entfernen")

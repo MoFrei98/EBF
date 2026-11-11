@@ -26,7 +26,7 @@ enum class PageTurn {
 data class AppSettings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
     /** Seitenausschnitt im Reader, gilt für alle Bücher. */
-    val pageSize: ZoomMode = ZoomMode.WIDE,
+    val pageSize: ZoomMode = ZoomMode.NORMAL,
     val pageTurn: PageTurn = PageTurn.CURL,
     /** Papiergeräusch beim Umblättern. */
     val pageTurnSound: Boolean = false,

@@ -20,19 +20,51 @@ import com.example.ebf.pdf.CropMath
 import com.example.ebf.pdf.PageAnalysis
 import com.example.ebf.pdf.PdfDocument
 import com.example.ebf.pdf.TypicalBounds
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
+import com.example.ebf.reflow.ReadingPosition
+import com.example.ebf.reflow.ReflowEngine
+import com.example.ebf.reflow.ReflowFrame
+import com.example.ebf.reflow.ReflowLayouter
+import com.example.ebf.reflow.ScreenPage
+import com.example.ebf.reflow.indexOf
+import com.example.ebf.reflow.position
+import com.example.ebf.reflow.reflowScale
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
+import kotlin.math.max
 
 sealed interface ReaderState {
     data object Loading : ReaderState
     data class Failed(val message: String, val canRemove: Boolean) : ReaderState
-    data class Ready(val title: String, val pageCount: Int, val initialPage: Int) : ReaderState
+    data class Ready(val title: String, val pageCount: Int) : ReaderState
+}
+
+/** Bildschirmgröße und gewünschte Schriftgröße für "Groß" (in Pixeln). */
+data class ReflowParams(val frame: ReflowFrame, val targetXHeight: Float)
+
+/**
+ * Neu umbrochene Seiten für "Groß". Während die Analyse noch läuft, kommen am Ende weitere
+ * Seiten dazu; [estimatedCount] schätzt die Gesamtzahl.
+ */
+data class ReflowLayout(
+    val params: ReflowParams,
+    val pages: List<ScreenPage>,
+    val complete: Boolean,
+    val analyzed: Int,
+    val total: Int,
+) {
+    val estimatedCount: Int
+        get() = if (complete || analyzed <= 0) pages.size
+        else max(pages.size, (pages.size.toLong() * total / analyzed).toInt())
 }
 
 class ReaderViewModel(app: Application, private val bookId: String) : AndroidViewModel(app) {
@@ -44,6 +76,20 @@ class ReaderViewModel(app: Application, private val bookId: String) : AndroidVie
     val state: StateFlow<ReaderState> = _state.asStateFlow()
 
     private var document: PdfDocument? = null
+    private var fileSize: Long = -1
+
+    /** Aktuelle Lesestelle, unabhängig von der Schriftgröße. */
+    var position = ReadingPosition(0)
+        private set
+
+    private var reflow: ReflowEngine? = null
+    private val reflowParams = MutableStateFlow<ReflowParams?>(null)
+    private val _reflowLayout = MutableStateFlow<ReflowLayout?>(null)
+    val reflowLayout: StateFlow<ReflowLayout?> = _reflowLayout.asStateFlow()
+    private val _reflowProgress = MutableStateFlow(0f)
+
+    /** Fortschritt der Vorbereitung von "Groß" (0..1). */
+    val reflowProgress: StateFlow<Float> = _reflowProgress.asStateFlow()
 
     /** Analyse je Seite. Nur auf dem Main-Thread benutzt. */
     private val analyses = HashMap<Int, PageAnalysis>()
@@ -76,15 +122,13 @@ class ReaderViewModel(app: Application, private val bookId: String) : AndroidVie
             return fail(R.string.error_empty_pdf)
         }
         document = doc
+        fileSize = book.fileSize
+        position = ReadingPosition(book.lastPage.coerceIn(0, doc.pageCount - 1), book.lastPageOffset.coerceIn(0f, 1f))
         val now = System.currentTimeMillis()
         ebf.appScope.launch {
             repo.update(bookId) { it.copy(lastOpenedAt = now, pageCount = doc.pageCount) }
         }
-        _state.value = ReaderState.Ready(
-            title = book.title,
-            pageCount = doc.pageCount,
-            initialPage = book.lastPage.coerceIn(0, doc.pageCount - 1),
-        )
+        _state.value = ReaderState.Ready(title = book.title, pageCount = doc.pageCount)
     }
 
     private fun fail(@StringRes message: Int, canRemove: Boolean = true) {
@@ -135,11 +179,78 @@ class ReaderViewModel(app: Application, private val bookId: String) : AndroidVie
     }
 
     fun onPageSettled(page: Int) {
+        // Innerhalb derselben Seite die genauere Stelle aus "Groß" behalten.
+        if (page != position.page) savePosition(ReadingPosition(page))
+    }
+
+    private fun savePosition(pos: ReadingPosition) {
+        position = pos
         ebf.appScope.launch {
             repo.update(bookId) {
-                it.copy(lastPage = page, lastOpenedAt = System.currentTimeMillis())
+                it.copy(lastPage = pos.page, lastPageOffset = pos.fraction, lastOpenedAt = System.currentTimeMillis())
             }
         }
+    }
+
+    // ------------------------------------------------------------------ Groß (neu umbrochen)
+
+    /** Startet die Analyse für "Groß" (einmal pro Buch) und setzt die Seiten für [params]. */
+    fun startReflow(params: ReflowParams) {
+        reflowParams.value = params
+        if (reflow != null) return
+        val doc = document ?: return
+        val engine = ReflowEngine(doc, ReflowEngine.cacheFile(getApplication(), bookId), fileSize)
+        reflow = engine
+        viewModelScope.launch { engine.run() }
+        viewModelScope.launch {
+            engine.analyzed.collect { n -> _reflowProgress.value = max(0, n) / engine.pageCount.toFloat() }
+        }
+        viewModelScope.launch(Dispatchers.Default) { layoutLoop(engine) }
+    }
+
+    private suspend fun layoutLoop(engine: ReflowEngine) {
+        var layouter: ReflowLayouter? = null
+        var used: ReflowParams? = null
+        var fed = 0
+        combine(engine.analyzed, reflowParams.filterNotNull()) { n, p -> n to p }.collect { (n, p) ->
+            val style = engine.style ?: return@collect
+            if (n < 0) return@collect
+            if (p != used || layouter == null) {
+                layouter = ReflowLayouter(style, p.frame, reflowScale(style, p.frame, p.targetXHeight))
+                used = p
+                fed = 0
+            }
+            val l = layouter!!
+            while (fed < n) {
+                engine.text(fed)?.let { l.add(fed, it) }
+                fed++
+            }
+            val complete = n >= engine.pageCount
+            val pages = if (complete) l.finish() else l.completedPages
+            _reflowLayout.value = ReflowLayout(p, pages.toList(), complete, n, engine.pageCount)
+        }
+    }
+
+    /** Bildschirmseite der aktuellen Lesestelle oder `null`, solange sie noch nicht gesetzt ist. */
+    fun reflowIndexOfPosition(layout: ReflowLayout): Int? {
+        val engine = reflow ?: return null
+        return layout.pages.indexOf(position, engine::lineCount, layout.complete)
+    }
+
+    fun onReflowPageSettled(layout: ReflowLayout, index: Int) {
+        val engine = reflow ?: return
+        val page = layout.pages.getOrNull(index) ?: return
+        savePosition(page.position(engine.lineCount(page.startPage)))
+    }
+
+    suspend fun renderReflowPage(layout: ReflowLayout, index: Int): ImageBitmap? {
+        val engine = reflow ?: return null
+        val page = layout.pages.getOrNull(index) ?: return null
+        val key = "reflow@${layout.params}@$index"
+        bitmaps.get(key)?.let { return it.asImageBitmap() }
+        val bitmap = engine.compose(page, layout.params.frame)
+        bitmaps.put(key, bitmap)
+        return bitmap.asImageBitmap()
     }
 
     fun removeBook() {

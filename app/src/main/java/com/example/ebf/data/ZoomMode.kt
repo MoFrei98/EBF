@@ -1,9 +1,8 @@
 package com.example.ebf.data
 
 /**
- * Schriftgröße im Reader (Einstellung "Klein / Normal / Groß"). Die Schrift wird größer,
- * indem ein kleinerer Ausschnitt der Seite gezeigt wird. In keiner Stufe wird links oder rechts Text abgeschnitten:
- * Mehr als "Groß" (Text füllt genau die Bildschirmbreite) geht im Hochformat nicht.
+ * Schriftgröße im Reader (Einstellung "Klein / Normal / Groß"). In keiner Stufe wird links
+ * oder rechts Text abgeschnitten. Standard ist "Normal".
  */
 enum class ZoomMode {
     /** "Klein": Die ganze Seite ist sichtbar. */
@@ -12,7 +11,10 @@ enum class ZoomMode {
     /** "Normal": Weiße Ränder zur Hälfte weg. */
     NORMAL,
 
-    /** "Groß": Weiße Ränder ganz weg, der Text füllt die Breite. Hohe Seiten scrollen. */
+    /**
+     * "Groß": Der Text wird neu umbrochen und deutlich vergrößert (siehe [com.example.ebf.reflow]).
+     * Eine PDF-Seite verteilt sich dabei auf mehrere Bildschirmseiten.
+     */
     CLOSE;
 
     companion object {
@@ -20,7 +22,7 @@ enum class ZoomMode {
         fun fromStored(name: String?): ZoomMode = when (name) {
             "CROP_MARGINS" -> CLOSE
             "FIT_PAGE" -> WIDE
-            else -> entries.firstOrNull { it.name == name } ?: WIDE
+            else -> entries.firstOrNull { it.name == name } ?: NORMAL
         }
     }
 }

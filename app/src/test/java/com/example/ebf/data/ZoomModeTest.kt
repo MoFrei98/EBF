@@ -11,9 +11,9 @@ class ZoomModeTest {
     }
 
     @Test
-    fun `default is wide`() {
-        assertEquals(ZoomMode.WIDE, ZoomMode.fromStored(null))
-        assertEquals(ZoomMode.WIDE, ZoomMode.fromStored("UNKNOWN"))
+    fun `default is normal`() {
+        assertEquals(ZoomMode.NORMAL, ZoomMode.fromStored(null))
+        assertEquals(ZoomMode.NORMAL, ZoomMode.fromStored("UNKNOWN"))
         assertEquals(ZoomMode.NORMAL, ZoomMode.fromStored("NORMAL"))
     }
 }

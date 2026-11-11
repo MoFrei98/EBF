@@ -7,6 +7,7 @@
     <string name="empty_title">Deine Bibliothek ist leer</string>
     <string name="empty_text">Füge eine PDF hinzu, um mit dem Lesen zu beginnen. PDFs aus anderen Apps kannst du auch über „Öffnen mit → EBF“ öffnen.</string>
     <string name="page_of">Seite %1$d von %2$d</string>
+    <string name="page_of_estimated">Seite %1$d von ca. %2$d</string>
     <string name="book_options">Optionen</string>
     <string name="rename">Umbenennen</string>
     <string name="edit_details">Details bearbeiten</string>
@@ -74,12 +75,14 @@
     <string name="back">Zurück</string>
     <string name="page_description">Seite %1$d</string>
     <string name="remove_from_library">Aus Bibliothek entfernen</string>
+    <string name="reflow_preparing">Große Schrift wird vorbereitet … %1$d %%</string>
+    <string name="reflow_preparing_hint">Das passiert nur beim ersten Mal. Der Rest des Buchs wird beim Lesen vorbereitet.</string>
     <string name="zoom_wide">Klein</string>
     <string name="zoom_wide_hint">Die ganze Seite ist sichtbar</string>
     <string name="zoom_normal">Normal</string>
     <string name="zoom_normal_hint">Ränder zur Hälfte weg</string>
     <string name="zoom_close">Groß</string>
-    <string name="zoom_close_hint">Ränder ganz weg, größte Schrift. Hohe Seiten scrollen.</string>
+    <string name="zoom_close_hint">Text wird neu umbrochen, viel größere Schrift. Mehr Seiten.</string>
 
     <!-- Einstellungen -->
     <string name="settings">Einstellungen</string>
