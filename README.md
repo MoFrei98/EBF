@@ -5,7 +5,7 @@
 <h1 align="center">EBF – a book-style PDF reader for Android</h1>
 
 <p align="center">
-  Read PDFs like a book: turn real-looking pages, sort your books into folders, read at night in dark mode – fully offline.
+  Read PDFs like a book: turn real-looking pages, sort your books into folders, find them again with search and filters, read at night in dark mode – fully offline.
 </p>
 
 > [!WARNING]
@@ -22,9 +22,10 @@ The app's interface is in German. The screenshots use a sample book made for thi
 ## Features
 
 - **Library with real folders.** Pick one folder on your phone (for example `Documents/EBF`) and EBF mirrors it: subfolders become folders in the app, PDFs inside appear automatically, and sorting a book into a folder moves the file on the device. Folder tiles show the covers of the books inside.
-- **Book pages.** Pages turn in 3D. The page bends from where you grab it: grab near the top and the top corner lifts first, near the bottom and the bottom corner does, then it straightens out as it flips. Prefer something simpler? Switch to **Slideshow**.
+- **Search and filters.** Search all folders by title or file name (case, umlauts and accents don't matter) and filter by *unread*, *started* or *finished*.
+- **Book pages.** Pages turn in 3D. The page bends from where you grab it: grab near the top and the top corner lifts first, near the bottom and the bottom corner does, in the middle the whole edge lifts; then it straightens out as it flips. Prefer something simpler? Switch to **Slideshow**.
 - **Paper look.** Each page lies on the table like a sheet of paper, with a soft shadow, shading at the spine and stacked page edges that show how far you are in the book.
-- **Page size that never cuts anything off.** Choose **whole page** or **remove margins** (white borders are trimmed so the text gets bigger, all pages are zoomed consistently). Content on the left and right is never cut off; tall pages scroll vertically. No pinch zoom.
+- **Bigger text without losing any.** Choose how much of the page you see: **Weit** (wide, the whole page), **Normal** (half of the white margins trimmed) or **Nah** (close, margins fully trimmed for the largest text). All pages of a book are zoomed the same way, nothing on the left or right is ever cut off, and tall pages scroll vertically. No pinch zoom. The app runs in portrait mode only.
 - **Dark mode for app and pages.** Pages are shown as light text on dark paper. Colors keep their hue and picture pages such as covers are only dimmed, not inverted.
 - **Remembers where you are.** Every book reopens on the page you left it.
 - **"Open with → EBF"** from your file manager, downloads or messengers.
@@ -75,6 +76,8 @@ You can skip this and just add PDFs. Folders become available once a library fol
 | Sort a book into a folder | **⋮** next to the book (or long-press its cover) → **In Ordner verschieben**. You can also create a new folder from there. |
 | Rename or delete a folder | **⋮** next to the folder. Only empty folders can be deleted, so nothing gets lost by accident. |
 | Navigate | Tap a folder to open it; the back arrow or back gesture goes up one level. |
+| Search | Tap the magnifier and type. Results come from all folders and show which folder they are in. |
+| Filter | Tap a chip below the toolbar: *Alle* (all), *Ungelesen* (unread), *Angefangen* (started), *Gelesen* (finished). The filter is remembered; tap *Alle* to turn it off. |
 | Sort | **⋮** → *Zuletzt gelesen* (recently read) or *Titel A–Z* |
 | Refresh | Pull down, or **⋮** → **Aktualisieren** |
 | Remove / delete a book | **⋮** next to the book. Books outside the library folder are only removed from the app. Books inside the library folder are deleted from the device after a confirmation. |
@@ -100,7 +103,7 @@ The toolbars hide automatically when you turn a page, so you read in full screen
 | --- | --- |
 | Library folder | The folder on your device that EBF mirrors. Tap **Ändern** to choose another one. |
 | Design | **System**, **Hell** (light) or **Dunkel** (dark). In dark mode the pages are always darkened. |
-| Page size | **Ganze Seite** (whole page) or **Ränder entfernen** (remove margins, larger text) |
+| Page section | **Weit** (whole page, default), **Normal** (half the margins trimmed) or **Nah** (margins fully trimmed, largest text). Text is never cut off. |
 | Page turning | **Buchseiten** (3D book pages) or **Slideshow** (pages simply slide) |
 
 ## Privacy and offline use
