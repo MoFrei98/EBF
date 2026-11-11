@@ -1,6 +1,7 @@
 package com.example.ebf.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +28,8 @@ data class AppSettings(
     /** Seitenausschnitt im Reader, gilt für alle Bücher. */
     val pageSize: ZoomMode = ZoomMode.WIDE,
     val pageTurn: PageTurn = PageTurn.CURL,
+    /** Papiergeräusch beim Umblättern. */
+    val pageTurnSound: Boolean = false,
     /** Bibliotheksordner auf dem Gerät (Tree-URI) oder `null`, solange keiner gewählt ist. */
     val libraryTree: String? = null,
     /** Lesbare Bezeichnung des Bibliotheksordners, z. B. "Documents/EBF". */
@@ -39,6 +42,7 @@ class SettingsRepository(private val context: Context) {
 
     private val themeKey = stringPreferencesKey("theme")
     private val pageTurnKey = stringPreferencesKey("page_turn")
+    private val pageTurnSoundKey = booleanPreferencesKey("page_turn_sound")
     private val pageSizeKey = stringPreferencesKey("page_size")
     private val libraryTreeKey = stringPreferencesKey("library_tree")
     private val libraryLabelKey = stringPreferencesKey("library_label")
@@ -51,6 +55,7 @@ class SettingsRepository(private val context: Context) {
                 theme = enumOrDefault(prefs[themeKey], ThemeMode.SYSTEM),
                 pageSize = ZoomMode.fromStored(prefs[pageSizeKey]),
                 pageTurn = enumOrDefault(prefs[pageTurnKey], PageTurn.CURL),
+                pageTurnSound = prefs[pageTurnSoundKey] ?: false,
                 libraryTree = prefs[libraryTreeKey],
                 libraryLabel = prefs[libraryLabelKey],
                 sort = enumOrDefault(prefs[sortKey], LibrarySort.RECENT),
@@ -69,6 +74,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPageTurn(value: PageTurn) {
         context.ebfDataStore.edit { it[pageTurnKey] = value.name }
+    }
+
+    suspend fun setPageTurnSound(value: Boolean) {
+        context.ebfDataStore.edit { it[pageTurnSoundKey] = value }
     }
 
     suspend fun setLibraryFolder(treeUri: String, label: String) {

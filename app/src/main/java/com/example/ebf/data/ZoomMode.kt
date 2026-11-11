@@ -1,18 +1,18 @@
 package com.example.ebf.data
 
 /**
- * Sichtbarer Seitenausschnitt im Reader (Einstellung). Je kleiner der Ausschnitt,
- * desto größer die Schrift. In keiner Stufe wird links oder rechts Text abgeschnitten:
- * Mehr als "Nah" (Text füllt genau die Bildschirmbreite) geht im Hochformat nicht.
+ * Schriftgröße im Reader (Einstellung "Klein / Normal / Groß"). Die Schrift wird größer,
+ * indem ein kleinerer Ausschnitt der Seite gezeigt wird. In keiner Stufe wird links oder rechts Text abgeschnitten:
+ * Mehr als "Groß" (Text füllt genau die Bildschirmbreite) geht im Hochformat nicht.
  */
 enum class ZoomMode {
-    /** Die ganze Seite ist sichtbar. */
+    /** "Klein": Die ganze Seite ist sichtbar. */
     WIDE,
 
-    /** Weiße Ränder zur Hälfte weg. */
+    /** "Normal": Weiße Ränder zur Hälfte weg. */
     NORMAL,
 
-    /** Weiße Ränder ganz weg, der Text füllt die Breite. Hohe Seiten scrollen. */
+    /** "Groß": Weiße Ränder ganz weg, der Text füllt die Breite. Hohe Seiten scrollen. */
     CLOSE;
 
     companion object {

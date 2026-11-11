@@ -148,6 +148,7 @@ private fun EbfNavigation(
             onThemeChange = { scope.launch { settingsRepository.setTheme(it) } },
             onPageSizeChange = { scope.launch { settingsRepository.setPageSize(it) } },
             onPageTurnChange = { scope.launch { settingsRepository.setPageTurn(it) } },
+            onPageTurnSoundChange = { scope.launch { settingsRepository.setPageTurnSound(it) } },
             onChooseLibraryFolder = {
                 showSettings = false
                 chooseLibraryFolder()

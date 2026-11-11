@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +35,7 @@ fun SettingsDialog(
     onThemeChange: (ThemeMode) -> Unit,
     onPageSizeChange: (ZoomMode) -> Unit,
     onPageTurnChange: (PageTurn) -> Unit,
+    onPageTurnSoundChange: (Boolean) -> Unit,
     onChooseLibraryFolder: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -104,6 +107,12 @@ fun SettingsDialog(
                         onClick = { onPageTurnChange(PageTurn.SLIDE) },
                     )
                 }
+                SwitchRow(
+                    label = stringResource(R.string.page_turn_sound),
+                    hint = stringResource(R.string.page_turn_sound_hint),
+                    checked = settings.pageTurnSound,
+                    onCheckedChange = onPageTurnSoundChange,
+                )
             }
         },
         confirmButton = {
@@ -121,6 +130,23 @@ internal fun SectionTitle(text: String) {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(bottom = 4.dp),
     )
+}
+
+@Composable
+private fun SwitchRow(label: String, hint: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, onValueChange = onCheckedChange, role = Role.Switch)
+            .padding(vertical = 8.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = null, modifier = Modifier.padding(start = 12.dp))
+    }
 }
 
 @Composable

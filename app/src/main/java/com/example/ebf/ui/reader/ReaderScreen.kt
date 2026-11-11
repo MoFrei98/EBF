@@ -2,6 +2,8 @@ package com.example.ebf.ui.reader
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -57,6 +59,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -69,10 +72,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ebf.R
 import com.example.ebf.data.AppSettings
+import com.example.ebf.data.PageTurn
 import com.example.ebf.ui.settings.ThemeToggleButton
 import com.example.ebf.ui.theme.LocalDarkTheme
 import com.example.ebf.ui.theme.LocalReaderColors
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @Composable
@@ -133,8 +138,48 @@ private fun Reader(
 
     ImmersiveMode(enabled = !barsVisible)
 
-    fun goTo(page: Int) {
-        if (page in 0 until pageCount) scope.launch { pagerState.animateScrollToPage(page) }
+    val bookPages = settings.pageTurn == PageTurn.CURL
+    val context = LocalContext.current
+    val sound = remember(settings.pageTurnSound) {
+        if (settings.pageTurnSound) PageTurnSound(context.applicationContext) else null
+    }
+    DisposableEffect(sound) { onDispose { sound?.close() } }
+
+    // Seite, für die das Geräusch zuletzt gespielt wurde (verhindert doppeltes Rascheln).
+    val soundedPage = remember { IntArray(1) { -1 } }
+    LaunchedEffect(pagerState, sound, bookPages) {
+        if (sound == null) return@LaunchedEffect
+        snapshotFlow { pagerState.currentPage to pagerState.settledPage }.collect { (current, settled) ->
+            when {
+                current == settled -> soundedPage[0] = settled
+                // Beim Wischen kippt die Seite über die Mitte: jetzt raschelt es.
+                abs(current - settled) == 1 && current != soundedPage[0] -> {
+                    soundedPage[0] = current
+                    sound.play(bookPages)
+                }
+            }
+        }
+    }
+
+    /**
+     * Umblättern per Tippen auf den Rand: langsam genug, dass man die Animation sieht.
+     * Schnelles Mehrfach-Tippen zählt vom Ziel der laufenden Animation weiter.
+     */
+    fun turnBy(delta: Int) {
+        val base = if (pagerState.isScrollInProgress) pagerState.targetPage else pagerState.currentPage
+        val target = (base + delta).coerceIn(0, pageCount - 1)
+        if (target == base) return
+        soundedPage[0] = target
+        sound?.play(bookPages)
+        scope.launch {
+            pagerState.animateScrollToPage(
+                page = target,
+                animationSpec = tween(
+                    durationMillis = if (bookPages) TAP_TURN_BOOK_MS else TAP_TURN_SLIDE_MS,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -176,8 +221,8 @@ private fun Reader(
                 grabRootY = { grabRootY },
                 onTap = { x, width ->
                     when {
-                        x < width * 0.25f -> goTo(pagerState.currentPage - 1)
-                        x > width * 0.75f -> goTo(pagerState.currentPage + 1)
+                        x < width * 0.25f -> turnBy(-1)
+                        x > width * 0.75f -> turnBy(+1)
                         else -> barsVisible = !barsVisible
                     }
                 },
@@ -207,7 +252,11 @@ private fun Reader(
             ReaderBottomBar(
                 currentPage = pagerState.currentPage,
                 pageCount = pageCount,
-                onSeek = { page -> scope.launch { pagerState.scrollToPage(page) } },
+                onSeek = { page ->
+                    // Springen über den Regler ist kein Umblättern: kein Geräusch.
+                    soundedPage[0] = page
+                    scope.launch { pagerState.scrollToPage(page) }
+                },
             )
         }
     }
@@ -325,3 +374,7 @@ private fun ImmersiveMode(enabled: Boolean) {
         onDispose { controller.show(WindowInsetsCompat.Type.systemBars()) }
     }
 }
+
+/** Dauer des Umblätterns beim Tippen auf den Rand. */
+private const val TAP_TURN_BOOK_MS = 1000
+private const val TAP_TURN_SLIDE_MS = 450

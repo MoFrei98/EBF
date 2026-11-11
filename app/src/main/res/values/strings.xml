@@ -68,11 +68,11 @@
     <string name="back">Zurück</string>
     <string name="page_description">Seite %1$d</string>
     <string name="remove_from_library">Aus Bibliothek entfernen</string>
-    <string name="zoom_wide">Weit</string>
+    <string name="zoom_wide">Klein</string>
     <string name="zoom_wide_hint">Die ganze Seite ist sichtbar</string>
     <string name="zoom_normal">Normal</string>
-    <string name="zoom_normal_hint">Ränder zur Hälfte weg, größere Schrift</string>
-    <string name="zoom_close">Nah</string>
+    <string name="zoom_normal_hint">Ränder zur Hälfte weg</string>
+    <string name="zoom_close">Groß</string>
     <string name="zoom_close_hint">Ränder ganz weg, größte Schrift. Hohe Seiten scrollen.</string>
 
     <!-- Einstellungen -->
@@ -88,12 +88,14 @@
     <string name="library_folder_hint">Ordner auf dem Gerät, in dem EBF deine Bücher sortiert.</string>
     <string name="change">Ändern</string>
     <string name="choose">Wählen</string>
-    <string name="settings_page_size">Seitenausschnitt</string>
+    <string name="settings_page_size">Schriftgröße</string>
     <string name="settings_page_turn">Blättern</string>
     <string name="page_turn_curl">Buchseiten</string>
     <string name="page_turn_curl_hint">Die Seite biegt sich in 3D um, dort wo du sie greifst</string>
     <string name="page_turn_slide">Slideshow</string>
     <string name="page_turn_slide_hint">Die Seiten gleiten einfach zur Seite</string>
+    <string name="page_turn_sound">Umblätter-Sound</string>
+    <string name="page_turn_sound_hint">Papierrascheln beim Umblättern. Still im Lautlos-Modus.</string>
     <string name="done">Fertig</string>
 
     <!-- Fehler -->

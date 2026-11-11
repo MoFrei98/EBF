@@ -106,7 +106,7 @@ internal fun PageView(
 
         // Seitenverhältnis des sichtbaren Ausschnitts.
         val aspect = (pdfSize.height * crop.height) / (pdfSize.width * crop.width)
-        // Bei "Nah" zählt jeder Millimeter, dort ist der Rand zum Bildschirm schmaler.
+        // Bei "Groß" zählt jeder Millimeter, dort ist der Rand zum Bildschirm schmaler.
         val hPadding = if (zoom == ZoomMode.CLOSE) PageHPaddingClose else PageHPadding
         val availableWidth = maxWidth - hPadding * 2
         val availableHeight = maxHeight - PageVPadding * 2
@@ -137,7 +137,7 @@ internal fun PageView(
                         .onGloballyPositioned { paperTop[0] = it.positionInRoot().y }
                 ) {
                     val top = paperTop[0]
-                    // Bei hohen Seiten (Normal/Nah) ist nur ein Teil sichtbar. Griff und
+                    // Bei hohen Seiten (Normal/Groß) ist nur ein Teil sichtbar. Griff und
                     // Perspektive beziehen sich auf diesen sichtbaren Teil.
                     val visibleTop = top.coerceAtLeast(0f)
                     val visibleBottom = (top + size.height).coerceAtMost(screenHeight).coerceAtLeast(visibleTop + 1f)
