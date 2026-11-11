@@ -76,18 +76,18 @@ fun SettingsDialog(
                 }
                 SectionTitle(stringResource(R.string.settings_page_size))
                 Column(Modifier.selectableGroup()) {
-                    RadioRow(
-                        label = stringResource(R.string.zoom_fit_page),
-                        hint = stringResource(R.string.zoom_fit_page_hint),
-                        selected = settings.pageSize == ZoomMode.FIT_PAGE,
-                        onClick = { onPageSizeChange(ZoomMode.FIT_PAGE) },
-                    )
-                    RadioRow(
-                        label = stringResource(R.string.zoom_crop),
-                        hint = stringResource(R.string.zoom_crop_hint),
-                        selected = settings.pageSize == ZoomMode.CROP_MARGINS,
-                        onClick = { onPageSizeChange(ZoomMode.CROP_MARGINS) },
-                    )
+                    listOf(
+                        Triple(ZoomMode.WIDE, R.string.zoom_wide, R.string.zoom_wide_hint),
+                        Triple(ZoomMode.NORMAL, R.string.zoom_normal, R.string.zoom_normal_hint),
+                        Triple(ZoomMode.CLOSE, R.string.zoom_close, R.string.zoom_close_hint),
+                    ).forEach { (mode, label, hint) ->
+                        RadioRow(
+                            label = stringResource(label),
+                            hint = stringResource(hint),
+                            selected = settings.pageSize == mode,
+                            onClick = { onPageSizeChange(mode) },
+                        )
+                    }
                 }
                 SectionTitle(stringResource(R.string.settings_page_turn))
                 Column(Modifier.selectableGroup()) {

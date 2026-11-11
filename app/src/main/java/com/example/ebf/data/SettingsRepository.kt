@@ -24,8 +24,8 @@ enum class PageTurn {
 
 data class AppSettings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
-    /** Seitengröße im Reader, gilt für alle Bücher. */
-    val pageSize: ZoomMode = ZoomMode.FIT_PAGE,
+    /** Seitenausschnitt im Reader, gilt für alle Bücher. */
+    val pageSize: ZoomMode = ZoomMode.WIDE,
     val pageTurn: PageTurn = PageTurn.CURL,
     /** Bibliotheksordner auf dem Gerät (Tree-URI) oder `null`, solange keiner gewählt ist. */
     val libraryTree: String? = null,
@@ -47,7 +47,7 @@ class SettingsRepository(private val context: Context) {
         .map { prefs ->
             AppSettings(
                 theme = enumOrDefault(prefs[themeKey], ThemeMode.SYSTEM),
-                pageSize = enumOrDefault(prefs[pageSizeKey], ZoomMode.FIT_PAGE),
+                pageSize = ZoomMode.fromStored(prefs[pageSizeKey]),
                 pageTurn = enumOrDefault(prefs[pageTurnKey], PageTurn.CURL),
                 libraryTree = prefs[libraryTreeKey],
                 libraryLabel = prefs[libraryLabelKey],

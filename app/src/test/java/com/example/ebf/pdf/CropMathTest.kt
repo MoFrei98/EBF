@@ -88,6 +88,12 @@ class CropMathTest {
     }
 
     @Test
+    fun `halfway lies between full page and crop`() {
+        assertEquals(Crop(0.05f, 0.1f, 0.95f, 0.85f), Crop(0.1f, 0.2f, 0.9f, 0.7f).halfway())
+        assertEquals(Crop.FULL, Crop.FULL.halfway())
+    }
+
+    @Test
     fun `typical bounds use median per parity`() {
         val samples = listOf(
             2 to Crop(0.2f, 0.1f, 0.9f, 0.9f),

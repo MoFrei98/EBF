@@ -21,6 +21,14 @@ data class Crop(val left: Float, val top: Float, val right: Float, val bottom: F
         bottom = (bottom + amount).coerceAtMost(1f),
     )
 
+    /** Ausschnitt genau zwischen der ganzen Seite und diesem Ausschnitt. */
+    fun halfway() = Crop(
+        left = left / 2f,
+        top = top / 2f,
+        right = (1f + right) / 2f,
+        bottom = (1f + bottom) / 2f,
+    )
+
     fun toRectF() = RectF(left, top, right, bottom)
 
     companion object {

@@ -41,6 +41,7 @@ import com.example.ebf.ui.theme.LightReaderColors
 import com.example.ebf.ui.theme.LocalReaderColors
 
 private val PageHPadding = 12.dp
+private val PageHPaddingClose = 6.dp
 private val PageVPadding = 16.dp
 
 /**
@@ -91,18 +92,24 @@ internal fun PageView(
     ) {
         val pageSize by produceState<Size?>(null, page) { value = vm.pageSize(page) }
         val crop = rememberResult(page, zoom) {
-            if (zoom == ZoomMode.CROP_MARGINS) vm.pageCrop(page) else Crop.FULL
+            when (zoom) {
+                ZoomMode.WIDE -> Crop.FULL
+                ZoomMode.NORMAL -> vm.pageCrop(page).halfway()
+                ZoomMode.CLOSE -> vm.pageCrop(page)
+            }
         }
         val size = pageSize
         if (size == null || crop == null) return@BoxWithConstraints
 
         // Seitenverhältnis des sichtbaren Ausschnitts.
         val aspect = (size.height * crop.height) / (size.width * crop.width)
-        val availableWidth = maxWidth - PageHPadding * 2
+        // Bei "Nah" zählt jeder Millimeter, dort ist der Rand zum Bildschirm schmaler.
+        val hPadding = if (zoom == ZoomMode.CLOSE) PageHPaddingClose else PageHPadding
+        val availableWidth = maxWidth - hPadding * 2
         val availableHeight = maxHeight - PageVPadding * 2
         val width = when (zoom) {
-            ZoomMode.FIT_PAGE -> minOf(availableWidth, availableHeight / aspect)
-            ZoomMode.CROP_MARGINS -> availableWidth
+            ZoomMode.WIDE -> minOf(availableWidth, availableHeight / aspect)
+            ZoomMode.NORMAL, ZoomMode.CLOSE -> availableWidth
         }
         val height = width * aspect
         val scrollable = height > availableHeight + 1.dp
