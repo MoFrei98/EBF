@@ -332,13 +332,17 @@ class ReflowLayouter(
         val indent = if (first) style.indent else 0f
         val available = frame.textWidth - indent
         val shrink = if (line.width > available) available / line.width else 1f
-        var ascent = nominalAscent
-        var descent = nominalDescent
+        var ascent = 0f
+        var descent = 0f
         for (segment in line.segments) for (piece in segment.pieces) {
             val l = piece.token.line
             ascent = max(ascent, (l.baseline - l.top) * k * shrink)
             descent = max(descent, (l.bottom - l.baseline) * k * shrink)
         }
+        // Gleichmäßiger Zeilenabstand: Ein Umlaut über einem Großbuchstaben oder eine Klammer
+        // soll keine Lücke reißen. Nur deutlich größere Schrift (Überschriften) bekommt mehr Platz.
+        ascent = if (ascent > nominalAscent * 1.35f) ascent else nominalAscent
+        descent = if (descent > nominalDescent * 1.6f) descent else nominalDescent
         var y = cursorY + if (first && current.isNotEmpty()) style.spaceBefore else 0f
         if (y + ascent + descent > limitY && current.isNotEmpty()) {
             closePage()
