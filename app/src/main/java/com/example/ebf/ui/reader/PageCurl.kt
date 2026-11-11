@@ -41,8 +41,8 @@ internal object PageCurl {
     /** Wie weit der freie Rand dem Buchrücken vorauseilt (0 = starre Drehung). */
     private const val CURL_SPREAD = 0.7f
 
-    /** Wie stark Zeilen fern der Griffhöhe zurückbleiben (0 = gerade Faltkante). */
-    private const val TILT = 0.5f
+    /** Wie stark Zeilen fern der gegriffenen Ecke zurückbleiben (0 = gerade Faltkante). */
+    private const val TILT = 1.1f
 
     /** Abstand der gedachten Kamera in Seitenbreiten (kleiner = stärkere Perspektive). */
     private const val CAMERA_DISTANCE = 3.2f
@@ -59,26 +59,43 @@ internal object PageCurl {
      * Berechnet die gebogene Seite.
      *
      * @param progress 0 = Seite liegt flach, 1 = Seite ist ganz nach links umgeblättert
-     * @param grab Höhe, an der die Seite gegriffen wird (0 = oben, 1 = unten)
+     * @param grab Höhe, an der der sichtbare Teil gegriffen wird (0 = oben, 1 = unten)
+     * @param visibleTop Oberkante des sichtbaren Teils auf der Seite (in Pixeln der Seite)
+     * @param visibleBottom Unterkante des sichtbaren Teils auf der Seite
      */
     fun project(
         width: Float,
         height: Float,
         progress: Float,
         grab: Float,
+        visibleTop: Float = 0f,
+        visibleBottom: Float = height,
         cols: Int = COLS,
         rows: Int = ROWS,
     ): Mesh {
         val mesh = Mesh(cols, rows)
         val step = width / cols
-        val tilt = TILT * (1f - progress)
         val camera = width * CAMERA_DISTANCE
         val cx = width / 2f
-        val cy = height / 2f
+        // Perspektive auf die Mitte dessen, was man sieht – sonst wölbt sich eine hohe
+        // Seite immer von unten, weil ihre Mitte unter dem Bildschirm liegt.
+        val cy = (visibleTop + visibleBottom) / 2f
+        val visibleHeight = (visibleBottom - visibleTop).coerceAtLeast(1f)
+
+        // Gegriffene Ecke: oben (0) oder unten (1). Nahe der Mitte hebt sich der Rand gerade.
+        val g = grab.coerceIn(0f, 1f)
+        val corner = if (g < 0.5f) 0f else 1f
+        val cornerWeight = smoothstep(0.08f, 0.38f, abs(g - 0.5f))
+        // Zum Ende des Umblätterns richtet sich die Seite gerade aus.
+        val tilt = TILT * cornerWeight * (1f - progress).let { it * it * (3f - 2f * it) }
+
         val thetas = FloatArray(cols)
         for (row in 0..rows) {
             val v = row.toFloat() / rows
-            val lag = tilt * abs(v - grab.coerceIn(0f, 1f))
+            // Abstand zur gegriffenen Ecke, gemessen am sichtbaren Teil.
+            val yOnPage = v * height
+            val distance = (abs((yOnPage - visibleTop) / visibleHeight - corner)).coerceIn(0f, 1.5f)
+            val lag = tilt * distance
             for (col in 0 until cols) {
                 // Position entlang der Seite: 0 = Buchrücken, 1 = freier Rand.
                 val s = (col + 0.5f) / cols - lag
@@ -104,6 +121,11 @@ internal object PageCurl {
         return mesh
     }
 
+    private fun smoothstep(edge0: Float, edge1: Float, x: Float): Float {
+        val t = ((x - edge0) / (edge1 - edge0)).coerceIn(0f, 1f)
+        return t * t * (3f - 2f * t)
+    }
+
     /** Helligkeit der Vorderseite: frontal = hell, schräg = dunkler. */
     fun frontLight(angle: Float): Float = 0.5f + 0.5f * max(0f, cos(angle))
 
@@ -118,18 +140,22 @@ private val plainPaint = Paint(Paint.ANTI_ALIAS_FLAG)
  * Zeichnet die umblätternde Seite in die Fläche dieser DrawScope (Größe = Seite).
  * Die Seite darf beim Umblättern über die Fläche hinausragen.
  *
- * @param grab Griffhöhe auf der Seite (0 = oben, 1 = unten)
+ * @param grab Griffhöhe im sichtbaren Teil der Seite (0 = oben, 1 = unten)
+ * @param visibleTop Oberkante des sichtbaren Teils auf der Seite
+ * @param visibleBottom Unterkante des sichtbaren Teils auf der Seite
  */
 internal fun DrawScope.drawCurledPage(
     progress: Float,
     grab: Float,
+    visibleTop: Float,
+    visibleBottom: Float,
     bitmap: ImageBitmap?,
     colorFilter: ColorFilter?,
     paperColor: Color,
     shadowColor: Color,
 ) {
     val p = progress.coerceIn(0f, 1f)
-    val mesh = PageCurl.project(size.width, size.height, p, grab)
+    val mesh = PageCurl.project(size.width, size.height, p, grab, visibleTop, visibleBottom)
     val cols = mesh.cols
     val rows = mesh.rows
     val lift = sin(PI * p).toFloat().coerceAtLeast(0f)

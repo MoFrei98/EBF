@@ -155,7 +155,11 @@ private fun Reader(
                         while (true) {
                             val event = awaitPointerEvent(PointerEventPass.Initial)
                             val change = event.changes.firstOrNull() ?: continue
-                            if (change.pressed) grabRootY = pagerTop[0] + change.position.y
+                            // Nur beim Aufsetzen: Beim Wischen fährt ein Daumen meist im
+                            // Bogen nach unten, die Seite soll aber dort gegriffen bleiben.
+                            if (change.pressed && !change.previousPressed) {
+                                grabRootY = pagerTop[0] + change.position.y
+                            }
                         }
                     }
                 },

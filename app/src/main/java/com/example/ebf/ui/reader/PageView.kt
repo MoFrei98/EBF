@@ -29,6 +29,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -98,11 +99,13 @@ internal fun PageView(
                 ZoomMode.CLOSE -> vm.pageCrop(page)
             }
         }
-        val size = pageSize
-        if (size == null || crop == null) return@BoxWithConstraints
+        // Seitengröße der PDF in Punkten. Bewusst nicht "size" genannt: In den Zeichen-
+        // Lambdas unten meint "size" die Fläche in Pixeln (DrawScope.size).
+        val pdfSize = pageSize
+        if (pdfSize == null || crop == null) return@BoxWithConstraints
 
         // Seitenverhältnis des sichtbaren Ausschnitts.
-        val aspect = (size.height * crop.height) / (size.width * crop.width)
+        val aspect = (pdfSize.height * crop.height) / (pdfSize.width * crop.width)
         // Bei "Nah" zählt jeder Millimeter, dort ist der Rand zum Bildschirm schmaler.
         val hPadding = if (zoom == ZoomMode.CLOSE) PageHPaddingClose else PageHPadding
         val availableWidth = maxWidth - hPadding * 2
@@ -125,6 +128,7 @@ internal fun PageView(
         }
 
         val paperTop = remember { FloatArray(1) }
+        val screenHeight = LocalView.current.height.toFloat()
         val paper: @Composable () -> Unit = {
             if (turning) {
                 Canvas(
@@ -132,10 +136,18 @@ internal fun PageView(
                         .size(width, height)
                         .onGloballyPositioned { paperTop[0] = it.positionInRoot().y }
                 ) {
+                    val top = paperTop[0]
+                    // Bei hohen Seiten (Normal/Nah) ist nur ein Teil sichtbar. Griff und
+                    // Perspektive beziehen sich auf diesen sichtbaren Teil.
+                    val visibleTop = top.coerceAtLeast(0f)
+                    val visibleBottom = (top + size.height).coerceAtMost(screenHeight).coerceAtLeast(visibleTop + 1f)
                     val y = grabRootY()
+                    val grabY = if (y.isNaN()) (visibleTop + visibleBottom) / 2f else y.coerceIn(visibleTop, visibleBottom)
                     drawCurledPage(
                         progress = pageOffset(),
-                        grab = if (y.isNaN()) 0.5f else ((y - paperTop[0]) / size.height).coerceIn(0f, 1f),
+                        grab = ((grabY - visibleTop) / (visibleBottom - visibleTop)).coerceIn(0f, 1f),
+                        visibleTop = visibleTop - top,
+                        visibleBottom = visibleBottom - top,
                         bitmap = bitmap.takeIf { imagePage != null },
                         colorFilter = colorFilter,
                         paperColor = paperColor,
