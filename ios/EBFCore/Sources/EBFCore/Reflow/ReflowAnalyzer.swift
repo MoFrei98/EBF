@@ -172,10 +172,10 @@ public enum ReflowAnalyzer {
 
             let raw = split.map { measure($0, rowInk, x0, x1, lineHeight) }
             let pageXHeight = ReflowAnalyzer.median(raw.filter { !$0.figure }.map(\.xHeight)) ?? (lineHeight / 2)
-            let glyphs = raw.map { $0.figure ? nil : glyphs(of: $0, x0, x1) }
-            let wordGap = wordGapThreshold(raw, glyphs, pageXHeight)
+            let glyphRuns = raw.map { $0.figure ? nil : glyphs(of: $0, x0, x1) }
+            let wordGap = wordGapThreshold(raw, glyphRuns, pageXHeight)
             return raw.enumerated().map { i, line in
-                guard let g = glyphs[i] else { return line }
+                guard let g = glyphRuns[i] else { return line }
                 return withWords(line, g, wordGap * lineScale(line, pageXHeight))
             }
         }
