@@ -82,7 +82,9 @@ You need iOS 17 or newer. EBF is not in the App Store, so you install it yoursel
 
 ### Get the app file
 
-GitHub builds the iPhone app automatically (workflow **iOS** under **Actions**). Open the latest successful run and download the artifact **EBF-ipa**; it contains `EBF.ipa`. The file is not signed – the tools below sign it with your Apple ID.
+On your computer, sign in to GitHub and open **https://github.com/MoFrei98/EBF/releases**. Pick the newest release named **EBF for iPhone** and download **`EBF-ios-<version>.ipa`** under **Assets**. The file is not signed – the tools below sign it with your Apple ID.
+
+**Newest build:** GitHub also builds the iPhone app after every change (workflow **iOS** under **Actions**). Open the latest successful run and download the artifact **EBF-ipa**; it contains `EBF.ipa`.
 
 ### From Windows: Sideloadly or AltStore
 
