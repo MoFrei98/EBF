@@ -1,5 +1,5 @@
 """
-Erzeugt die Umblätter-Geräusche für EBF synthetisch (keine fremden Aufnahmen,
+Erzeugt die Umblätter-Geräusche für Easy Books synthetisch (keine fremden Aufnahmen,
 daher keine Lizenzfragen).
 
 Aufruf:  python tools/make_page_sounds.py
