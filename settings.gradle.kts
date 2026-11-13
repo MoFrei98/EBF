@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "EBF"
+rootProject.name = "EasyBooks"
 include(":app")
  

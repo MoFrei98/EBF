@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ebf"
+    namespace = "com.example.easybooks"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,6 +12,9 @@ android {
     }
 
     defaultConfig {
+        // Stammt noch aus der Zeit, als die App "EBF" hieß. Nicht ändern: Android erkennt
+        // neue Versionen nur mit derselben App-ID als Update, sonst gehen Bibliothek,
+        // Lesefortschritt und Einstellungen der installierten App verloren.
         applicationId = "com.example.ebf"
         minSdk = 26
         targetSdk = 36

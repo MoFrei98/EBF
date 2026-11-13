@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/icon.png" width="112" alt="EBF app icon">
+  <img src="docs/icon.png" width="112" alt="Easy Books app icon">
 </p>
 
-<h1 align="center">EBF – a book-style PDF reader for Android</h1>
+<h1 align="center">Easy Books – a book-style PDF reader for Android</h1>
 
 <p align="center">
   Read PDFs like a book: turn real-looking pages, sort your books into folders, find them again with search and filters, read at night in dark mode – fully offline.
@@ -21,15 +21,15 @@ The app's interface is in German. The screenshots use a sample book made for thi
 
 ## Features
 
-- **Library with real folders.** Pick one folder on your phone (for example `Documents/EBF`) and EBF mirrors it: subfolders become folders in the app, PDFs inside appear automatically, and sorting a book into a folder moves the file on the device. Folder tiles show the covers of the books inside.
-- **Book details.** Every book has a title, author and publication year. EBF fills them in automatically from the PDF's metadata or the file name (e.g. `[Lastname_Firstname]_Title.pdf`), and you can edit them.
+- **Library with real folders.** Pick one folder on your phone (for example `Documents/Easy Books`) and Easy Books mirrors it: subfolders become folders in the app, PDFs inside appear automatically, and sorting a book into a folder moves the file on the device. Folder tiles show the covers of the books inside.
+- **Book details.** Every book has a title, author and publication year. Easy Books fills them in automatically from the PDF's metadata or the file name (e.g. `[Lastname_Firstname]_Title.pdf`), and you can edit them.
 - **Search and filters.** Search all folders by title, author, year or file name (case, umlauts and accents don't matter) and filter by *unread*, *started* or *finished*.
 - **Book pages.** Pages turn in 3D, with an optional paper-rustle sound. The page bends from where you grab it: grab near the top and the top corner lifts first, near the bottom and the bottom corner does, in the middle the whole edge lifts; then it straightens out as it flips. Prefer something simpler? Switch to **Slideshow**.
 - **Paper look.** Each page lies on the table like a sheet of paper, with a soft shadow, shading at the spine and stacked page edges that show how far you are in the book.
-- **Bigger text without losing any.** Pick a text size: **Klein** (small, the whole page), **Normal** (white margins fully trimmed so the text fills the width, the default) or **Groß** (large print). With **Groß** the text is reflowed like in an e-book: EBF finds the lines and words on each page and sets them again in larger, shorter lines, keeping the book's font, italics and pictures. Words split by a hyphen at the end of a line are joined again. One PDF page then spans several screen pages and the page count adapts. Nothing on the left or right is ever cut off, in any size. No pinch zoom. The app runs in portrait mode only.
+- **Bigger text without losing any.** Pick a text size: **Klein** (small, the whole page), **Normal** (white margins fully trimmed so the text fills the width, the default) or **Groß** (large print). With **Groß** the text is reflowed like in an e-book: Easy Books finds the lines and words on each page and sets them again in larger, shorter lines, keeping the book's font, italics and pictures. Words split by a hyphen at the end of a line are joined again. One PDF page then spans several screen pages and the page count adapts. Nothing on the left or right is ever cut off, in any size. No pinch zoom. The app runs in portrait mode only.
 - **Dark mode for app and pages.** Pages are shown as light text on dark paper. Colors keep their hue and picture pages such as covers are only dimmed, not inverted.
 - **Remembers where you are.** Every book reopens on the page you left it.
-- **"Open with → EBF"** from your file manager, downloads or messengers.
+- **"Open with → Easy Books"** from your file manager, downloads or messengers.
 - **Fully offline.** See [Privacy](#privacy-and-offline-use).
 
 ## Install on your phone
@@ -39,8 +39,8 @@ You need Android 8.0 or newer.
 ### Easiest: APK from GitHub Releases
 
 1. On your phone, open a browser and sign in to GitHub. The repository is private, so you need to be signed in.
-2. Go to **https://github.com/MoFrei98/EBF/releases/latest**.
-3. Under **Assets**, tap **`EBF-<version>.apk`** to download it.
+2. Go to **https://github.com/MoFrei98/EasyBooks/releases/latest**.
+3. Under **Assets**, tap **`EasyBooks-<version>.apk`** to download it (up to version 1.4 the file is called `EBF-<version>.apk`).
 4. Open the downloaded file, for example from the download notification or **Files → Downloads**.
 5. The first time, Android asks whether your browser may install apps. Tap **Settings → Allow from this source**, go back and tap **Install**.
 6. If Google Play Protect warns about an unknown app, tap **More details → Install anyway**. The warning appears because the app does not come from the Play Store.
@@ -55,13 +55,13 @@ You need Android 8.0 or newer.
 
 ### Updating
 
-Install the new APK over the old one. Your library, reading progress and settings are kept.
+Install the new APK over the old one. Your library, reading progress and settings are kept. Up to version 1.4 the app was called **EBF**; Easy Books installs as an update over it.
 
 ## How to use it
 
 ### First start: choose a library folder
 
-On the empty library screen tap **Bibliotheksordner wählen** (choose library folder). The system folder picker opens in `Documents`. Tap the folder icon at the top to create a folder such as `EBF`, open it, tap **Use this folder** and allow access.
+On the empty library screen tap **Bibliotheksordner wählen** (choose library folder). The system folder picker opens in `Documents`. Tap the folder icon at the top to create a folder such as `Easy Books`, open it, tap **Use this folder** and allow access.
 
 Everything already in that folder shows up in the app. You can also put PDFs and subfolders there from your computer later; pull down on the library to refresh.
 
@@ -72,7 +72,7 @@ You can skip this and just add PDFs. Folders become available once a library fol
 | Action | How |
 | --- | --- |
 | Add a PDF | Tap **PDF hinzufügen** and pick a file. It lands in the folder you have open and the book opens right away. |
-| Open a PDF from another app | Tap the PDF in your file manager, downloads or a messenger and choose **EBF**. |
+| Open a PDF from another app | Tap the PDF in your file manager, downloads or a messenger and choose **Easy Books**. |
 | Create a folder | **⋮** at the top right → **Neuer Ordner** |
 | Sort a book into a folder | **⋮** next to the book (or long-press its cover) → **In Ordner verschieben**. You can also create a new folder from there. |
 | Rename or delete a folder | **⋮** next to the folder. Only empty folders can be deleted, so nothing gets lost by accident. |
@@ -84,7 +84,7 @@ You can skip this and just add PDFs. Folders become available once a library fol
 | Refresh | Pull down, or **⋮** → **Aktualisieren** |
 | Remove / delete a book | **⋮** next to the book. Books outside the library folder are only removed from the app. Books inside the library folder are deleted from the device after a confirmation. |
 
-**About moving files:** when you sort a book into a folder, EBF *moves* the PDF into the library folder. If Android doesn't allow deleting the original (for example for some files opened from other apps), EBF copies it instead and tells you.
+**About moving files:** when you sort a book into a folder, Easy Books *moves* the PDF into the library folder. If Android doesn't allow deleting the original (for example for some files opened from other apps), Easy Books copies it instead and tells you.
 
 ### Reading
 
@@ -103,7 +103,7 @@ The toolbars hide automatically when you turn a page, so you read in full screen
 
 | Setting | Options |
 | --- | --- |
-| Library folder | The folder on your device that EBF mirrors. Tap **Ändern** to choose another one. |
+| Library folder | The folder on your device that Easy Books mirrors. Tap **Ändern** to choose another one. |
 | Design | **System**, **Hell** (light) or **Dunkel** (dark). In dark mode the pages are always darkened. |
 | Text size | **Klein** (small, whole page), **Normal** (margins fully trimmed, text fills the width; default) or **Groß** (text reflowed in much larger print, more pages). The first time you open a book in **Groß** it takes a few seconds to prepare; after that it opens right away. Text is never cut off. |
 | Page-turn sound | Soft paper rustle when you turn a page. Off by default; silent when the phone is on silent or vibrate. |
@@ -111,7 +111,7 @@ The toolbars hide automatically when you turn a page, so you read in full screen
 
 ## Privacy and offline use
 
-EBF works completely offline and never sends data anywhere:
+Easy Books works completely offline and never sends data anywhere:
 
 - The app has **no internet permission**. Android won't let it open any network connection.
 - It contains no analytics, ads, crash reporting or other third-party services. All dependencies are AndroidX libraries.
@@ -128,9 +128,9 @@ The page-turn sounds are synthesized by [`tools/make_page_sounds.py`](tools/make
 ### Project layout
 
 ```
-app/src/main/java/com/example/ebf/
+app/src/main/java/com/example/easybooks/
 ├── MainActivity.kt          navigation, "Open with", folder picker
-├── EbfApp.kt                application, repositories
+├── EasyBooksApp.kt          application, repositories
 ├── data/                    SQLite database (BookDatabase), library and folder sync (LibraryRepository,
 │                            LibraryTree), metadata detection (BookMetadata), settings
 ├── pdf/                     PdfDocument (rendering), Crop (margin detection)

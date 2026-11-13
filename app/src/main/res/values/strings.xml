@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">EBF</string>
+    <string name="app_name">Easy Books</string>
 
     <!-- Bibliothek -->
     <string name="library_title">Bibliothek</string>
     <string name="add_pdf">PDF hinzufügen</string>
     <string name="empty_title">Deine Bibliothek ist leer</string>
-    <string name="empty_text">Füge eine PDF hinzu, um mit dem Lesen zu beginnen. PDFs aus anderen Apps kannst du auch über „Öffnen mit → EBF“ öffnen.</string>
+    <string name="empty_text">Füge eine PDF hinzu, um mit dem Lesen zu beginnen. PDFs aus anderen Apps kannst du auch über „Öffnen mit → Easy Books“ öffnen.</string>
     <string name="page_of">Seite %1$d von %2$d</string>
     <string name="page_of_estimated">Seite %1$d von ca. %2$d</string>
     <string name="book_options">Optionen</string>
@@ -60,7 +60,7 @@
     <string name="empty_folder_title">Dieser Ordner ist leer</string>
     <string name="empty_folder_text">Füge eine PDF hinzu oder verschiebe Bücher über ⋮ → In Ordner verschieben hierher.</string>
     <string name="library_folder_title">Bibliotheksordner wählen</string>
-    <string name="library_folder_text">EBF sortiert deine Bücher in echten Ordnern auf dem Gerät. Wähle dafür einmal einen Ordner, zum Beispiel „Documents“. Tipp: Im Auswahldialog kannst du über das Ordner-Symbol oben direkt einen Ordner „EBF“ anlegen.\n\nPDFs und Unterordner, die schon darin liegen, erscheinen automatisch in der Bibliothek. Beim Einsortieren werden PDFs in diesen Ordner verschoben.</string>
+    <string name="library_folder_text">Easy Books sortiert deine Bücher in echten Ordnern auf dem Gerät. Wähle dafür einmal einen Ordner, zum Beispiel „Documents“. Tipp: Im Auswahldialog kannst du über das Ordner-Symbol oben direkt einen Ordner „Easy Books“ anlegen.\n\nPDFs und Unterordner, die schon darin liegen, erscheinen automatisch in der Bibliothek. Beim Einsortieren werden PDFs in diesen Ordner verschoben.</string>
     <string name="library_folder_choose">Bibliotheksordner wählen</string>
     <string name="choose_folder">Ordner wählen</string>
     <string name="info_moved">Verschoben nach „%1$s“</string>
@@ -94,7 +94,7 @@
     <string name="switch_to_light">Helles Design</string>
     <string name="settings_library">Bibliotheksordner</string>
     <string name="library_folder_none">Noch nicht festgelegt</string>
-    <string name="library_folder_hint">Ordner auf dem Gerät, in dem EBF deine Bücher sortiert.</string>
+    <string name="library_folder_hint">Ordner auf dem Gerät, in dem Easy Books deine Bücher sortiert.</string>
     <string name="change">Ändern</string>
     <string name="choose">Wählen</string>
     <string name="settings_page_size">Schriftgröße</string>
