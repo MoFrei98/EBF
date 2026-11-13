@@ -1,4 +1,4 @@
-import EBFCore
+import EasyBooksCore
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -131,7 +131,7 @@ struct SettingsView: View {
                 Section("Bibliotheksordner") {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(library.rootName)
-                        Text("Ordner, in dem EBF deine Bücher sortiert. Du findest ihn auch in der Dateien-App.")
+                        Text("Ordner, in dem Easy Books deine Bücher sortiert. Du findest ihn auch in der Dateien-App.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }

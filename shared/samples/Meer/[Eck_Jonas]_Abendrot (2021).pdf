@@ -41,13 +41,13 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 420 595] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 7 0 R >>
 endobj
 9 0 obj
-<< /Length 256 >>
+<< /Length 263 >>
 stream
 0 0 0 rg
 BT /F2 24.00 Tf 160.67 392.70 Td (Abendrot) Tj ET
 BT /F1 13.00 Tf 148.63 362.70 Td (Erzählungen vom Meer) Tj ET
 BT /F1 12.00 Tf 185.84 322.70 Td (Jonas Eck) Tj ET
-BT /F1 10.00 Tf 119.18 120.00 Td (Ein Beispieltext zum Ausprobieren von EBF.) Tj ET
+BT /F1 10.00 Tf 104.20 120.00 Td (Ein Beispieltext zum Ausprobieren von Easy Books.) Tj ET
 endstream
 endobj
 10 0 obj
@@ -483,7 +483,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 420 595] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 17 0 R >>
 endobj
 19 0 obj
-<< /Title <FEFF004100620065006E00640072006F0074> /Author <FEFF004A006F006E00610073002000450063006B> /Producer (EBF sample) >>
+<< /Title <FEFF004100620065006E00640072006F0074> /Author <FEFF004A006F006E00610073002000450063006B> /Producer (Easy Books sample) >>
 endobj
 xref
 0 20
@@ -497,18 +497,18 @@ xref
 0000000546 00000 n 
 0000001383 00000 n 
 0000001539 00000 n 
-0000001845 00000 n 
-0000002002 00000 n 
-0000009908 00000 n 
-0000010066 00000 n 
-0000011715 00000 n 
-0000011873 00000 n 
-0000020417 00000 n 
-0000020575 00000 n 
-0000021391 00000 n 
-0000021549 00000 n 
+0000001852 00000 n 
+0000002009 00000 n 
+0000009915 00000 n 
+0000010073 00000 n 
+0000011722 00000 n 
+0000011880 00000 n 
+0000020424 00000 n 
+0000020582 00000 n 
+0000021398 00000 n 
+0000021556 00000 n 
 trailer
 << /Size 20 /Root 1 0 R /Info 19 0 R >>
 startxref
-21691
+21705
 %%EOF

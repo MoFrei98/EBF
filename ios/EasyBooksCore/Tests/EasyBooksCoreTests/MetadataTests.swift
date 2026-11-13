@@ -1,5 +1,5 @@
 import XCTest
-@testable import EBFCore
+@testable import EasyBooksCore
 
 /// Testfälle aus `shared/fixtures` (dieselben prüft die Android-App).
 enum Fixtures {

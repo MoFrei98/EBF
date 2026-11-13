@@ -31,7 +31,7 @@ The apps' interface is in German. The screenshots use sample books made for this
 
 Both apps do the same; where they differ, it says so.
 
-- **Library with real folders.** Easy Books mirrors a folder on your device: subfolders become folders in the app, PDFs inside appear automatically, and sorting a book into a folder moves the file. Folder tiles show the covers of the books inside. On Android you pick the folder (for example `Documents/Easy Books`); on the iPhone it is **On My iPhone › EBF** in the Files app, or any folder you choose, for example in iCloud Drive.
+- **Library with real folders.** Easy Books mirrors a folder on your device: subfolders become folders in the app, PDFs inside appear automatically, and sorting a book into a folder moves the file. Folder tiles show the covers of the books inside. On Android you pick the folder (for example `Documents/Easy Books`); on the iPhone it is **On My iPhone › Easy Books** in the Files app, or any folder you choose, for example in iCloud Drive.
 - **Book details.** Every book has a title, author and publication year. Easy Books fills them in automatically from the PDF's metadata or the file name (e.g. `[Lastname_Firstname]_Title.pdf`), and you can edit them.
 - **Search and filters.** Search all folders by title, author, year or file name (case, umlauts and accents don't matter) and filter by *unread*, *started* or *finished*.
 - **Book pages.** Pages turn like paper, with an optional paper-rustle sound. The page bends from where you grab it. Prefer something simpler? Switch to **Slideshow**.
@@ -42,7 +42,7 @@ Both apps do the same; where they differ, it says so.
   - **Groß** reflows the text like an e-book: Easy Books finds the lines and words on each page and sets them again in much larger, shorter lines, keeping the book's font, italics and pictures. Words split by a hyphen at the end of a line are joined again, and chapters start on a new page. One PDF page then spans several screen pages and the page count adapts. This works without a text layer, so scanned books work too.
 - **Dark mode for app and pages.** Pages are shown as light text on dark paper. Colors keep their hue and picture pages such as covers are only dimmed, not inverted.
 - **Remembers where you are.** Every book reopens where you left it, also when you switch the text size.
-- **Open PDFs from other apps:** "Open with → Easy Books" on Android, "Share → EBF" on the iPhone.
+- **Open PDFs from other apps:** "Open with → Easy Books" on Android, "Share → Easy Books" on the iPhone.
 - **Fully offline.** See [Privacy](#privacy-and-offline-use).
 
 | Normal | Groß |
@@ -82,21 +82,21 @@ You need iOS 17 or newer. Easy Books is not in the App Store, so you install it 
 
 ### Get the app file
 
-On your computer, sign in to GitHub and open **https://github.com/MoFrei98/EasyBooks/releases**. Pick the newest release named **EBF for iPhone** and download **`EBF-ios-<version>.ipa`** under **Assets**. The file is not signed – the tools below sign it with your Apple ID.
+On your computer, sign in to GitHub and open **https://github.com/MoFrei98/EasyBooks/releases**. Pick the newest release named **Easy Books for iPhone** and download **`EasyBooks-ios-<version>.ipa`** under **Assets** (version 1.0 is still called **EBF for iPhone**, with the file `EBF-ios-1.0.ipa`; newer versions install over it). The file is not signed – the tools below sign it with your Apple ID.
 
-**Newest build:** GitHub also builds the iPhone app after every change (workflow **iOS** under **Actions**). Open the latest successful run and download the artifact **EBF-ipa**; it contains `EBF.ipa`.
+**Newest build:** GitHub also builds the iPhone app after every change (workflow **iOS** under **Actions**). Open the latest successful run and download the artifact **EasyBooks-ipa**; it contains `EasyBooks.ipa`.
 
 ### From Windows: Sideloadly or AltStore
 
 1. Install [Sideloadly](https://sideloadly.io) (or [AltStore](https://altstore.io)) and follow its setup instructions; it needs Apple's iTunes and iCloud for Windows from Apple's website.
 2. Connect the iPhone with a USB cable and trust the computer.
-3. Drag `EBF.ipa` into Sideloadly, enter your Apple ID and click **Start**.
+3. Drag the `.ipa` file into Sideloadly, enter your Apple ID and click **Start**.
 4. On the iPhone, turn on **Settings → Privacy & Security → Developer Mode** if iOS asks for it, and allow the app under **Settings → General → VPN & Device Management**.
 
 ### From a Mac: Xcode
 
 1. Install Xcode from the App Store and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
-2. In the `ios` folder run `xcodegen`, then open `EBF.xcodeproj`.
+2. In the `ios` folder run `xcodegen`, then open `EasyBooks.xcodeproj`.
 3. Select your iPhone at the top, choose your Apple ID under **Signing & Capabilities** and click **Run ▶**.
 
 ## How to use it
@@ -105,7 +105,7 @@ On your computer, sign in to GitHub and open **https://github.com/MoFrei98/EasyB
 
 **Android:** on the empty library screen tap **Bibliotheksordner wählen** (choose library folder). The system folder picker opens in `Documents`. Tap the folder icon at the top to create a folder such as `Easy Books`, open it, tap **Use this folder** and allow access. Everything already in that folder shows up in the app. You can skip this and just add PDFs; folders become available once a library folder is set.
 
-**iPhone:** nothing to set up. Your library is the folder **On My iPhone › EBF** in the Files app; PDFs and folders you put there show up in Easy Books. You can choose another folder in the settings.
+**iPhone:** nothing to set up. Your library is the folder **On My iPhone › Easy Books** in the Files app; PDFs and folders you put there show up in Easy Books. You can choose another folder in the settings.
 
 In both apps you can put PDFs and subfolders into the library folder later, for example from your computer; pull down on the library to refresh.
 
@@ -114,7 +114,7 @@ In both apps you can put PDFs and subfolders into the library folder later, for 
 | Action | How |
 | --- | --- |
 | Add a PDF | Tap **PDF hinzufügen** and pick a file. It lands in the folder you have open and the book opens right away. |
-| Open a PDF from another app | Android: tap the PDF in your file manager, downloads or a messenger and choose **Easy Books**. iPhone: **Share → EBF**. |
+| Open a PDF from another app | Android: tap the PDF in your file manager, downloads or a messenger and choose **Easy Books**. iPhone: **Share → Easy Books**. |
 | Create a folder | **⋮** (iPhone: **⋯**) at the top right → **Neuer Ordner** |
 | Sort a book into a folder | **⋮** next to the book (or long-press its cover) → **In Ordner verschieben**. You can also create a new folder from there. |
 | Rename or delete a folder | Android: **⋮** next to the folder. iPhone: long-press the folder. Only empty folders can be deleted, so nothing gets lost by accident. |
@@ -156,7 +156,7 @@ The toolbars hide automatically when you turn a page, so you read in full screen
 Easy Books works completely offline and never sends data anywhere:
 
 - **Android:** the app has **no internet permission**, so Android won't let it open any network connection. It requests no storage permission and only accesses the PDFs you pick and the library folder you choose, through Android's system file pickers. Android's automatic cloud backup is turned off for the app.
-- **iPhone:** the app contains no network code. It only accesses its own folder (On My iPhone › EBF) and folders you choose yourself. Covers and the prepared large-text data are excluded from backups; your PDFs are normal files in your library folder and are backed up like other files on your iPhone.
+- **iPhone:** the app contains no network code. It only accesses its own folder (On My iPhone › Easy Books) and folders you choose yourself. Covers and the prepared large-text data are excluded from backups; your PDFs are normal files in your library folder and are backed up like other files on your iPhone.
 - Neither app contains analytics, ads, crash reporting or other third-party services.
 - Your library (titles, authors, reading progress, folders) is kept in a local SQLite database in the app's private storage. SQLite is built into Android and iOS, so there's nothing extra to install. The PDFs themselves stay as normal files in your library folder, they are not copied into the database.
 
@@ -183,9 +183,9 @@ app/src/main/java/com/example/easybooks/  Android app (Kotlin, Jetpack Compose)
     └── theme/               colors and theme
 ios/                                      iPhone app (Swift, SwiftUI)
 ├── project.yml              Xcode project, generated with XcodeGen
-├── EBFCore/                 shared logic as a Swift package: metadata, search, folders, margins,
+├── EasyBooksCore/           shared logic as a Swift package: metadata, search, folders, margins,
 │                            colors and the Groß reflow – same rules as the Android app, tested on Linux
-└── EBF/                     app: library, reader (UIPageViewController), PDF rendering (PDFKit)
+└── EasyBooks/               app: library, reader (UIPageViewController), PDF rendering (PDFKit)
 shared/
 ├── fixtures/                test cases checked by both apps (file names, authors, search)
 └── samples/                 sample books for screenshots and tests

@@ -1,5 +1,5 @@
 # Xcode-Projekt für die iOS-App, erzeugt mit XcodeGen:  cd ios && xcodegen
-name: EBF
+name: EasyBooks
 options:
   bundleIdPrefix: com.example
   deploymentTarget:
@@ -17,34 +17,37 @@ settings:
     ENABLE_PREVIEWS: NO
 
 packages:
-  EBFCore:
-    path: EBFCore
+  EasyBooksCore:
+    path: EasyBooksCore
 
 targets:
-  EBF:
+  EasyBooks:
     type: application
     platform: iOS
     sources:
-      - path: EBF
+      - path: EasyBooks
       # Dieselben Umblätter-Geräusche wie in der Android-App.
       - path: ../app/src/main/res/raw
         buildPhase: resources
         group: Sounds
     dependencies:
-      - package: EBFCore
+      - package: EasyBooksCore
     scheme: {}
     settings:
       base:
+        # Stammt noch aus der Zeit, als die App "EBF" hieß. Nicht ändern: iOS erkennt neue
+        # Versionen nur mit derselben Bundle-ID als Update, sonst sind Bibliothek, Lesefortschritt
+        # und Einstellungen der installierten App weg.
         PRODUCT_BUNDLE_IDENTIFIER: com.example.ebf
-        PRODUCT_NAME: EBF
+        PRODUCT_NAME: EasyBooks
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        INFOPLIST_FILE: EBF/Info.plist
+        INFOPLIST_FILE: EasyBooks/Info.plist
     info:
-      path: EBF/Info.plist
+      path: EasyBooks/Info.plist
       properties:
         CFBundleDevelopmentRegion: de
-        CFBundleDisplayName: EBF
+        CFBundleDisplayName: Easy Books
         CFBundleExecutable: $(EXECUTABLE_NAME)
         CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
         CFBundleInfoDictionaryVersion: "6.0"
@@ -59,7 +62,7 @@ targets:
           - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
-        # Der Bibliotheksordner erscheint in der Dateien-App unter "Auf meinem iPhone › EBF".
+        # Der Bibliotheksordner erscheint in der Dateien-App unter "Auf meinem iPhone › Easy Books" (Anzeigename der App).
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true
         # "Öffnen mit" / Teilen für PDFs

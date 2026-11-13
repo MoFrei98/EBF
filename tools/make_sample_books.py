@@ -136,7 +136,7 @@ def build(f, title, subtitle, author, sky):
     pages = [cover(f, title, subtitle, author, sky)]
     title_page = b"0 0 0 rg\n" + centered(f, f.H * 0.66, title, "F2", 24) + centered(f, f.H * 0.66 - 30, subtitle, "F1", 13)
     title_page += centered(f, f.H * 0.66 - 70, author, "F1", 12)
-    title_page += centered(f, 120, "Ein Beispieltext zum Ausprobieren von EBF.", "F1", 10)
+    title_page += centered(f, 120, "Ein Beispieltext zum Ausprobieren von Easy Books.", "F1", 10)
     pages.append(title_page)
 
     page_no = 3
@@ -184,7 +184,7 @@ def write_pdf(path, f, pages, title, author):
             b"<< /Type /Page /Parent %d 0 R /MediaBox [0 0 %d %d] /Resources << /Font %s >> /Contents %d 0 R >>"
             % (pages_obj, f.W, f.H, font_dict, stream)
         ))
-    info = add(b"<< /Title " + pdf_text(title) + b" /Author " + pdf_text(author) + b" /Producer (EBF sample) >>")
+    info = add(b"<< /Title " + pdf_text(title) + b" /Author " + pdf_text(author) + b" /Producer (Easy Books sample) >>")
     objects[catalog - 1] = b"<< /Type /Catalog /Pages %d 0 R >>" % pages_obj
     objects[pages_obj - 1] = b"<< /Type /Pages /Kids [%s] /Count %d >>" % (
         b" ".join(b"%d 0 R" % k for k in kids), len(kids))

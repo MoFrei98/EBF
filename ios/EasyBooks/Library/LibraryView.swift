@@ -1,4 +1,4 @@
-import EBFCore
+import EasyBooksCore
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -201,7 +201,7 @@ struct FolderView: View {
     private var emptyText: String {
         if settings.filter != .all { return "" }
         if folder.isEmpty && library.books.isEmpty {
-            return "Füge eine PDF hinzu, um mit dem Lesen zu beginnen. PDFs aus anderen Apps öffnest du über „Teilen → EBF“. In der Dateien-App findest du die Bibliothek unter „Auf meinem iPhone › EBF“."
+            return "Füge eine PDF hinzu, um mit dem Lesen zu beginnen. PDFs aus anderen Apps öffnest du über „Teilen → Easy Books“. In der Dateien-App findest du die Bibliothek unter „Auf meinem iPhone › Easy Books“."
         }
         return "Füge eine PDF hinzu oder verschiebe Bücher über ⋯ → In Ordner verschieben hierher."
     }

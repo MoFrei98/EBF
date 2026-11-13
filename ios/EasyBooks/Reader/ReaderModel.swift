@@ -1,4 +1,4 @@
-import EBFCore
+import EasyBooksCore
 import Foundation
 import PDFKit
 import UIKit

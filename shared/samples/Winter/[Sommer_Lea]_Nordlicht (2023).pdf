@@ -41,13 +41,13 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 7 0 R >>
 endobj
 9 0 obj
-<< /Length 256 >>
+<< /Length 263 >>
 stream
 0 0 0 rg
 BT /F2 24.00 Tf 248.17 555.72 Td (Nordlicht) Tj ET
 BT /F1 13.00 Tf 245.34 525.72 Td (Ein Wintertagebuch) Tj ET
 BT /F1 12.00 Tf 266.67 485.72 Td (Lea Sommer) Tj ET
-BT /F1 10.00 Tf 206.68 120.00 Td (Ein Beispieltext zum Ausprobieren von EBF.) Tj ET
+BT /F1 10.00 Tf 191.70 120.00 Td (Ein Beispieltext zum Ausprobieren von Easy Books.) Tj ET
 endstream
 endobj
 10 0 obj
@@ -451,7 +451,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 13 0 R >>
 endobj
 15 0 obj
-<< /Title <FEFF004E006F00720064006C0069006300680074> /Author <FEFF004C0065006100200053006F006D006D00650072> /Producer (EBF sample) >>
+<< /Title <FEFF004E006F00720064006C0069006300680074> /Author <FEFF004C0065006100200053006F006D006D00650072> /Producer (Easy Books sample) >>
 endobj
 xref
 0 16
@@ -465,14 +465,14 @@ xref
 0000000532 00000 n 
 0000001369 00000 n 
 0000001525 00000 n 
-0000001831 00000 n 
-0000001988 00000 n 
-0000010725 00000 n 
-0000010883 00000 n 
-0000020418 00000 n 
-0000020576 00000 n 
+0000001838 00000 n 
+0000001995 00000 n 
+0000010732 00000 n 
+0000010890 00000 n 
+0000020425 00000 n 
+0000020583 00000 n 
 trailer
 << /Size 16 /Root 1 0 R /Info 15 0 R >>
 startxref
-20726
+20740
 %%EOF

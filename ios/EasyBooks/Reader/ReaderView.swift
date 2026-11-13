@@ -1,4 +1,4 @@
-import EBFCore
+import EasyBooksCore
 import SwiftUI
 import UIKit
 

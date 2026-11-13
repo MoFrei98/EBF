@@ -19,8 +19,8 @@ local.properties
 /.idea/
 
 # iOS: von XcodeGen und SwiftPM erzeugt
-/ios/EBF.xcodeproj/
-/ios/EBF/Info.plist
+/ios/EasyBooks.xcodeproj/
+/ios/EasyBooks/Info.plist
 /ios/build/
 .build/
 .swiftpm/

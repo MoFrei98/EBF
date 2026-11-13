@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// EBF – PDFs lesen wie ein Buch. Komplett offline, ohne Konto und ohne Datenübertragung.
+/// Easy Books – PDFs lesen wie ein Buch. Komplett offline, ohne Konto und ohne Datenübertragung.
 @main
-struct EBFApp: App {
+struct EasyBooksApp: App {
     @StateObject private var settings = AppSettings()
     @StateObject private var library = Library()
 
@@ -14,7 +14,7 @@ struct EBFApp: App {
                 .preferredColorScheme(settings.theme.colorScheme)
                 .tint(Theme.accent)
                 .onOpenURL { url in
-                    // "Öffnen mit EBF" / Teilen aus einer anderen App.
+                    // "Öffnen mit Easy Books" / Teilen aus einer anderen App.
                     Task { await library.openExternal(url) }
                 }
         }

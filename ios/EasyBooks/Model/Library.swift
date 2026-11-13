@@ -1,5 +1,5 @@
 import CryptoKit
-import EBFCore
+import EasyBooksCore
 import Foundation
 import PDFKit
 import UIKit
@@ -7,7 +7,7 @@ import UIKit
 /// Die Bibliothek: Bücher und Ordner im Bibliotheksordner, gespeichert in der lokalen Datenbank.
 ///
 /// Der Bibliotheksordner ist standardmäßig der Dokumente-Ordner der App. Er erscheint in der
-/// Dateien-App unter "Auf meinem iPhone › EBF"; Unterordner sind echte Ordner. Optional kann ein
+/// Dateien-App unter "Auf meinem iPhone › Easy Books"; Unterordner sind echte Ordner. Optional kann ein
 /// anderer Ordner gewählt werden (z. B. in iCloud Drive).
 @MainActor
 final class Library: ObservableObject {
@@ -28,6 +28,7 @@ final class Library: ObservableObject {
         let fm = FileManager.default
         support = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         try? fm.createDirectory(at: support, withIntermediateDirectories: true)
+        // Alter Dateiname aus der Zeit als "EBF"; bleibt, damit bestehende Bibliotheken erhalten bleiben.
         db = BookDatabase(url: support.appendingPathComponent("ebf.db"))
         (root, customRoot) = Library.resolveRoot()
         for dir in ["covers", "reflow"] {
@@ -45,7 +46,7 @@ final class Library: ObservableObject {
 
     static var documents: URL { FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0] }
 
-    var rootName: String { customRoot ? root.lastPathComponent : "Auf meinem iPhone › EBF" }
+    var rootName: String { customRoot ? root.lastPathComponent : "Auf meinem iPhone › Easy Books" }
 
     private static func resolveRoot() -> (URL, Bool) {
         if let data = UserDefaults.standard.data(forKey: "libraryBookmark") {
@@ -61,7 +62,7 @@ final class Library: ObservableObject {
     /// Wählt einen anderen Bibliotheksordner (aus der Ordnerauswahl).
     func setRoot(_ url: URL) async {
         guard url.startAccessingSecurityScopedResource() else {
-            notice = "Auf diesen Ordner darf EBF nicht zugreifen."
+            notice = "Auf diesen Ordner darf Easy Books nicht zugreifen."
             return
         }
         do {
@@ -77,7 +78,7 @@ final class Library: ObservableObject {
         }
     }
 
-    /// Zurück zum Ordner "Auf meinem iPhone › EBF".
+    /// Zurück zum Ordner "Auf meinem iPhone › Easy Books".
     func resetRoot() async {
         UserDefaults.standard.removeObject(forKey: "libraryBookmark")
         if customRoot { root.stopAccessingSecurityScopedResource() }
@@ -329,7 +330,7 @@ final class Library: ObservableObject {
         return relative.hasPrefix("Inbox/") ? nil : relative
     }
 
-    /// "Öffnen mit EBF" aus einer anderen App.
+    /// "Öffnen mit Easy Books" aus einer anderen App.
     func openExternal(_ url: URL) async {
         if let book = await importFiles([url], into: FolderPaths.root) {
             openBookID = book.uuid

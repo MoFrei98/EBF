@@ -1,5 +1,5 @@
 import Foundation
-import EBFCore
+import EasyBooksCore
 
 /// Ein Buch der Bibliothek. Die PDF liegt im Bibliotheksordner unter [path].
 struct Book: Identifiable, Equatable {

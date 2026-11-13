@@ -1,5 +1,5 @@
 import XCTest
-@testable import EBFCore
+@testable import EasyBooksCore
 
 /// Künstliche Seiten wie in den Android-Tests: "Buchstaben" sind schwarze Rechtecke
 /// (x-Höhe 14 px, etwa jeder vierte mit Oberlänge), Buchstabenabstand 2 px, Wortabstand 10 px.

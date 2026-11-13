@@ -21,7 +21,7 @@ jobs:
       - name: Swift-Version
         run: swift --version
       - name: Tests
-        run: swift test --package-path ios/EBFCore
+        run: swift test --package-path ios/EasyBooksCore
 
   app:
     name: App (macOS)
@@ -63,14 +63,14 @@ jobs:
 
       - name: App für den Simulator bauen
         run: |
-          xcodebuild -project ios/EBF.xcodeproj -scheme EBF -configuration Release \
+          xcodebuild -project ios/EasyBooks.xcodeproj -scheme EasyBooks -configuration Release \
             -destination "id=${{ steps.sim.outputs.udid }}" -derivedDataPath build/sim \
             CODE_SIGNING_ALLOWED=NO build -quiet
 
       - name: Screenshots mit den Beispielbüchern
         run: |
           UDID=${{ steps.sim.outputs.udid }}
-          APP=build/sim/Build/Products/Release-iphonesimulator/EBF.app
+          APP=build/sim/Build/Products/Release-iphonesimulator/EasyBooks.app
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 \
@@ -94,17 +94,17 @@ jobs:
           shot dark -theme dark -textSize normal -demoOpen Leuchtturm -demoPage 2 -demoHideBars YES
           shot library-dark -theme dark -textSize normal
           shot settings -theme light -textSize normal -demoSettings YES
-          xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "EBF"' --style compact > shots/log.txt || true
+          xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "EasyBooks"' --style compact > shots/log.txt || true
 
       - name: Unsignierte .ipa bauen
         run: |
-          xcodebuild -project ios/EBF.xcodeproj -scheme EBF -configuration Release -sdk iphoneos \
+          xcodebuild -project ios/EasyBooks.xcodeproj -scheme EasyBooks -configuration Release -sdk iphoneos \
             -destination "generic/platform=iOS" -derivedDataPath build/device \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build -quiet
           mkdir -p ipa/Payload
-          cp -R build/device/Build/Products/Release-iphoneos/EBF.app ipa/Payload/
-          (cd ipa && zip -qry ../EBF.ipa Payload)
-          ls -la EBF.ipa
+          cp -R build/device/Build/Products/Release-iphoneos/EasyBooks.app ipa/Payload/
+          (cd ipa && zip -qry ../EasyBooks.ipa Payload)
+          ls -la EasyBooks.ipa
 
       - name: Screenshots hochladen
         if: always()
@@ -117,5 +117,5 @@ jobs:
       - name: .ipa hochladen
         uses: actions/upload-artifact@v4
         with:
-          name: EBF-ipa
-          path: EBF.ipa
+          name: EasyBooks-ipa
+          path: EasyBooks.ipa

@@ -1,12 +1,12 @@
 import CoreGraphics
-import EBFCore
+import EasyBooksCore
 import Foundation
 import PDFKit
 
 /// Rendert Seiten einer PDF im Hintergrund. PDFKit ist nicht threadsicher, deshalb laufen alle
 /// Zugriffe auf das Dokument nacheinander in einer eigenen Warteschlange.
 final class PDFRenderer: @unchecked Sendable {
-    private let queue = DispatchQueue(label: "ebf.pdf", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "easybooks.pdf", qos: .userInitiated)
     private let document: PDFDocument
     let pageCount: Int
 
